@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Meta3D Arena · Cat Swarm vs Coati Optimization</title>
+<meta name="description" content="Simulasi 3D interaktif algoritma metaheuristik Cat Swarm Optimization (CSO) dan Coati Optimization Algorithm (COA), lengkap dengan game berburu harta karun.">
+<style>
+:root{--bg:#0b1030;--l1:#121843;--l2:#182050;--l3:#1e2760;--accent:#4de1ff;--hi:inset 0 1px 0 rgba(255,255,255,.06);--line:rgba(255,255,255,.12);--txt:#eaf0ff;--mut:#97a3d3;--pink:#ff5c9a;--cyan:#4de1ff;--gold:#ffd166}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+#app{position:fixed;inset:0}
+#app canvas{display:block;touch-action:none;outline:none}
+button{font:inherit;color:inherit;cursor:pointer}
+.glass{background:var(--l1);border:1px solid var(--line);border-radius:10px;box-shadow:var(--hi)}
+[hidden]{display:none!important}
+
+#topbar{position:fixed;top:10px;left:10px;right:10px;height:46px;display:flex;align-items:center;gap:12px;padding:0 10px;z-index:6}
+.brand{display:flex;align-items:center;gap:8px;white-space:nowrap}
+.brand small{color:var(--mut)}
+.tabs{display:flex;gap:4px;margin:0 auto}
+.tabs button{background:transparent;border:1px solid transparent;border-radius:10px;padding:6px 12px}
+.tabs button.on{background:var(--l2);border-color:var(--line);border-bottom:2px solid var(--accent)}
+.ico{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.06)}
+
+#panel{position:fixed;top:66px;left:10px;width:310px;max-height:calc(100% - 78px);overflow:auto;padding:14px;z-index:4}
+#panel h3{margin:0 0 8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+#panel label{display:block;margin:10px 0 0;color:var(--mut);font-size:13px}
+#panel label b{float:right;color:var(--txt);font-weight:600}
+#panelToggle{display:none;width:100%;background:none;border:0;padding:0 0 8px;text-align:left;color:var(--mut)}
+select{width:100%;margin-top:4px;padding:7px 8px;border-radius:9px;border:1px solid var(--line);background:rgba(8,12,36,.8);color:var(--txt);font:inherit}
+input[type=range]{width:100%;margin:4px 0 0;accent-color:var(--cyan)}
+.seg{display:flex;gap:4px;background:rgba(255,255,255,.05);padding:3px;border-radius:11px;border:1px solid var(--line)}
+.seg button{flex:1;background:transparent;border:0;border-radius:8px;padding:6px 4px;font-size:13px}
+.seg button.on{background:rgba(255,255,255,.14);font-weight:600}
+details{margin-top:12px;border-top:1px solid var(--line);padding-top:8px}
+summary{cursor:pointer;color:var(--mut);font-size:13px}
+.chk{display:grid;grid-template-columns:1fr 1fr;gap:4px 8px;margin-top:12px}
+.chk label{margin:0;display:flex;align-items:center;gap:6px;color:var(--txt);font-size:13px}
+.chk input{accent-color:var(--cyan)}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.btns button,.primary{border:1px solid var(--line);background:rgba(255,255,255,.08);border-radius:10px;padding:8px 10px}
+.btns button:hover{background:rgba(255,255,255,.15)}.primary:hover,.btns .primary:hover{background:#86eaff}
+.primary,.btns .primary{background:var(--accent);color:#06102a;border:0;font-weight:700;padding:10px 16px;width:100%}
+.btns .wide{grid-column:1/-1}
+.hint{margin:12px 0 0;font-size:12.5px;color:var(--mut)}
+.keys{margin:8px 0;padding-left:18px;color:var(--mut);font-size:13px}
+.keys b{color:var(--txt)}
+kbd{background:rgba(255,255,255,.12);border-radius:5px;padding:0 5px;font-size:12px}
+#records{margin-top:10px;font-size:12.5px;color:var(--mut)}
+
+#stats{position:fixed;top:66px;right:10px;width:310px;padding:12px;z-index:3}
+.card{border-left:3px solid var(--c);padding:4px 0 4px 10px;margin-bottom:8px}
+.card .ct{display:flex;justify-content:space-between;font-weight:600}
+.card .ct span{color:var(--mut);font-weight:400;font-size:12px}
+.card .cv{font-size:22px;font-variant-numeric:tabular-nums;color:var(--c)}
+.card .cs{font-size:12px;color:var(--mut)}
+#chart{width:100%;height:120px;display:block;margin-top:4px}
+.legend{font-size:11.5px;color:var(--mut);margin-top:4px}
+.grad{height:8px;border-radius:5px;margin:6px 0 2px;background:linear-gradient(90deg,#ffd166,#5ad6a0,#2b73c8,#4a2f9a,#38195f)}
+
+#gTimer{position:fixed;top:66px;left:50%;transform:translateX(-50%);padding:6px 20px;font-size:28px;font-weight:800;font-variant-numeric:tabular-nums;z-index:4}
+#gTimer.low{color:#ff6b6b}
+#gBoard{position:fixed;top:66px;left:10px;width:240px;padding:10px 12px;z-index:4}
+#gBoard .r{display:flex;justify-content:space-between;gap:8px;padding:3px 0;font-size:13px}
+#gBoard .r b{font-variant-numeric:tabular-nums}
+#gBottom{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);width:min(440px,calc(100% - 20px));padding:10px 14px;z-index:4}
+.thermo{height:10px;border-radius:6px;background:rgba(255,255,255,.1);overflow:hidden;margin:6px 0}
+.thermo i{display:block;height:100%;width:0;background:linear-gradient(90deg,#4aa8ff,#ffd166,#ff5c3a);transition:width .12s}
+#gBottom .line{display:flex;justify-content:space-between;align-items:center;gap:10px}
+#btnSonar{border:1px solid var(--line);background:rgba(77,225,255,.18);border-radius:10px;padding:8px 12px;white-space:nowrap}
+#btnSonar:disabled{opacity:.5}
+#count{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;font-size:min(30vw,200px);font-weight:900;color:#fff;pointer-events:none;z-index:7}
+#overlay{background:var(--l3);box-shadow:var(--hi),0 0 0 100vmax rgba(3,6,20,.55);position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(440px,calc(100% - 24px));padding:22px;text-align:center;z-index:8}
+#overlay h2{margin:0 0 6px;font-size:24px}
+#overlay p{color:var(--mut);margin:6px 0}
+#overlay .btns{grid-template-columns:1fr 1fr}
+#toast{position:fixed;left:50%;bottom:70px;transform:translateX(-50%);padding:8px 14px;border-radius:10px;background:rgba(0,0,0,.7);border:1px solid var(--line);z-index:9;opacity:0;transition:opacity .25s;pointer-events:none}
+#toast.on{opacity:1}
+#help{position:fixed;inset:0;background:rgba(3,6,20,.6);display:flex;align-items:center;justify-content:center;z-index:10;padding:12px}
+#help .card2{background:var(--l3);max-width:640px;max-height:88vh;overflow:auto;padding:20px}
+#help h2{margin:0 0 6px}#help h4{margin:14px 0 4px;color:var(--txt)}
+#help p,#help li{color:#cdd6ff;font-size:13.5px}
+#help ul{padding-left:18px;margin:4px 0}
+
+@media (max-width:760px){
+  .brand small{display:none}
+  .brand b{display:none}
+  .tabs button{padding:6px 9px;white-space:nowrap}
+  #panel{top:auto;bottom:10px;left:10px;right:10px;width:auto;max-height:42vh}
+  #panel.collapsed{max-height:42px;overflow:hidden}
+  #panelToggle{display:block}
+  #stats{top:64px;left:10px;right:10px;width:auto;padding:8px 10px}
+  #stats #statCards{display:flex;gap:10px}
+  #stats .card{flex:1;margin:0}
+  .card .cv{font-size:17px}
+  #chart{height:64px}
+  .legend{display:none}
+  #gBoard{width:190px;top:112px}
+  #gTimer{top:62px;font-size:22px}
+}
+
+
+
+
+#learn{position:fixed;top:66px;left:0;right:0;bottom:0;z-index:9;background:var(--bg);overflow:auto;scroll-behavior:smooth;scroll-snap-type:y proximity;padding:0 16px;font-size:clamp(17px,1.9vw,21px);line-height:1.65;color:#d5dcff}
+#learn .wrap{max-width:1040px;margin:0 auto}
+#learn .sl{min-height:calc(100vh - 66px);display:flex;flex-direction:column;justify-content:center;padding:36px 0;border-bottom:1px solid var(--line);scroll-snap-align:start}
+#learn .tag{color:var(--accent);font-size:.7em;letter-spacing:.12em;text-transform:uppercase;margin:0 0 6px;font-weight:700}
+#learn h1{font-size:clamp(34px,6vw,60px);line-height:1.1;margin:0 0 14px;color:#fff}
+#learn h2{font-size:clamp(28px,4.4vw,44px);line-height:1.15;margin:0 0 14px;color:#fff}
+#learn h3{font-size:1.1em;margin:0 0 6px;color:#fff}
+#learn p{margin:0 0 12px}#learn .sub{color:var(--mut);margin:-6px 0 16px}
+#learn .cols{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:center}
+#learn .g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+#learn .k{background:var(--l1);border:1px solid var(--line);border-radius:10px;padding:14px 18px}
+#learn .k p:last-child{margin-bottom:0}
+#learn .sm{font-size:.86em}
+#learn .cso{border-top:3px solid var(--pink)}#learn .coa{border-top:3px solid var(--cyan)}
+#learn .hl{border:1px solid var(--line);border-left:3px solid var(--accent);background:var(--l1);padding:14px 18px;border-radius:8px;color:#fff;margin:14px 0}
+#learn table{border-collapse:collapse;width:100%;background:var(--l1);font-size:.9em}
+#learn th,#learn td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
+#learn th{background:var(--l2);color:#fff}
+#learn .fm{background:#050824;border:1px solid var(--line);border-radius:8px;padding:10px 14px;font:.78em/1.6 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;color:#bfe9ff;margin:8px 0}
+#learn ol,#learn ul{margin:0 0 12px;padding-left:1.3em}#learn li{margin:4px 0}
+#learn svg{width:100%;height:auto;display:block}#learn .k svg{margin-bottom:10px}
+#learn svg text{font-size:13px;fill:#eaf0ff}
+#learn .row{display:flex;align-items:center;gap:10px;margin:6px 0;font-size:.8em}
+#learn .row b{width:110px;flex:none}
+#learn .bar{flex:1;display:flex;gap:2px;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:2px;min-height:34px;overflow:hidden}
+#learn .blk{flex:none;background:var(--l3);border:1px solid var(--line);border-radius:4px;text-align:center;line-height:28px;font-size:.9em}
+#learn .cta{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
+#learn .cta button{width:auto;flex:1;min-width:200px}
+#learn .cta .alt{background:var(--l2);color:var(--txt);border:1px solid var(--line)}#learn .cta .alt:hover{background:var(--l3)}
+#lprog{position:fixed;right:14px;bottom:12px;background:var(--l2);border:1px solid var(--line);border-radius:8px;padding:4px 10px;font-size:13px;color:var(--mut);z-index:2}
+@media (max-width:760px){#learn .cols{grid-template-columns:1fr}.tabs button{font-size:13px;padding:6px 7px}}
+</style>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+</script>
+</head>
+<body>
+<div id="app"></div>
+
+<div id="topbar" class="glass">
+  <div class="brand"><span>🐱🦝</span><b>Meta3D Arena</b><small>CSO · COA</small></div>
+  <div class="tabs"><button id="tabSim" class="on">🔬 Simulasi</button><button id="tabLearn">📖 Belajar</button><button id="tabGame">🎮 Game</button></div>
+  <button id="btnHelp" class="ico" title="Bantuan">?</button>
+</div>
+
+<aside id="panel" class="glass">
+  <button id="panelToggle">⚙️ Panel kontrol (ketuk untuk buka/tutup)</button>
+
+  <div id="simPanel">
+    <h3>Algoritma</h3>
+    <div class="seg" id="segAlgo">
+      <button data-v="cso">🐱 CSO</button><button data-v="coa">🦝 COA</button><button data-v="duel" class="on">⚔️ Duel</button>
+    </div>
+    <label>Fungsi uji (cari titik terendah)<select id="selFn"></select></label>
+    <label>Populasi <b id="vN">24</b><input type="range" id="rN" min="10" max="60" step="2" value="24"></label>
+    <label>Kecepatan animasi <b id="vSpd">1.0×</b><input type="range" id="rSpd" min="0.25" max="4" step="0.25" value="1"></label>
+    <label>Iterasi maksimum <b id="vT">100</b><input type="range" id="rT" min="30" max="300" step="10" value="100"></label>
+    <details>
+      <summary>Parameter CSO</summary>
+      <label>MR · rasio kucing mengejar <b id="vMR">0.25</b><input type="range" id="rMR" min="0.05" max="0.8" step="0.05" value="0.25"></label>
+      <label>SMP · memori seeking <b id="vSMP">5</b><input type="range" id="rSMP" min="2" max="10" step="1" value="5"></label>
+      <label>SRD · jangkauan seeking <b id="vSRD">0.20</b><input type="range" id="rSRD" min="0.05" max="0.5" step="0.05" value="0.2"></label>
+    </details>
+    <div class="chk">
+      <label><input type="checkbox" id="cTrail" checked>Jejak</label>
+      <label><input type="checkbox" id="cGhost" checked>Kandidat seeking</label>
+      <label><input type="checkbox" id="cWire">Wireframe</label>
+      <label><input type="checkbox" id="cOpt" checked>Tampilkan optimum</label>
+      <label><input type="checkbox" id="cRot" checked>Putar kamera</label>
+    </div>
+    <div class="btns">
+      <button id="btnRun" class="wide">▶ Mulai</button>
+      <button id="btnStep">⏭ Langkah</button>
+      <button id="btnReset">↺ Reset</button>
+      <button id="btnShift" class="wide">🎲 Acak posisi optimum</button>
+    </div>
+    <p class="hint">Pintasan: <kbd>Spasi</kbd> mulai/jeda. Seret untuk memutar kamera, scroll/pinch untuk zoom.</p>
+  </div>
+
+  <div id="gamePanel" hidden>
+    <h3>🎮 Berburu Harta Karun</h3>
+    <p class="hint" style="margin-top:0">Harta karun = <b>titik optimum global</b> (nilai fungsi terendah) yang tersembunyi dalam kabut. Temukan lebih dulu daripada 🐱 tim CSO dan 🦝 tim COA!</p>
+    <label>Medan<select id="gFn"></select></label>
+    <label style="margin-bottom:4px">Kesulitan bot</label>
+    <div class="seg" id="segDiff"><button data-v="easy">Santai</button><button data-v="normal" class="on">Normal</button><button data-v="hard">Susah</button></div>
+    <ul class="keys">
+      <li><kbd>W A S D</kbd> / panah = jalan</li>
+      <li><b>Klik / ketuk</b> medan = jalan ke sana</li>
+      <li><kbd>Spasi</kbd> = Sonar (buka kabut luas)</li>
+      <li>Warna emas = lembah dalam = dekat harta</li>
+    </ul>
+    <button id="btnStart" class="primary">Mulai Game</button>
+    <div id="records"></div>
+  </div>
+</aside>
+
+<aside id="stats" class="glass">
+  <div id="statCards"></div>
+  <canvas id="chart"></canvas>
+  <div class="legend">Grafik: log₁₀ nilai terbaik per iterasi (turun = lebih baik)</div>
+  <div class="grad"></div>
+  <div class="legend">Warna medan: emas = rendah (bagus) → ungu = tinggi (buruk)</div>
+</aside>
+
+<div id="gTimer" class="glass" hidden>60</div>
+<div id="gBoard" class="glass" hidden></div>
+<div id="gBottom" class="glass" hidden>
+  <div class="line"><span>🌡️ <b id="gTemp">—</b></span><span>f = <b id="gF">—</b></span><button id="btnSonar">📡 Sonar</button></div>
+  <div class="thermo"><i id="gBar"></i></div>
+</div>
+<div id="count" hidden></div>
+<div id="overlay" class="glass" hidden>
+  <h2 id="ovTitle"></h2><div id="ovBody"></div>
+  <div class="btns"><button id="ovA" class="primary"></button><button id="ovB"></button></div>
+</div>
+
+
+
+<div id="learn" hidden><div class="wrap">
+
+<section class="sl"><p class="tag">Pengantar</p>
+<h1>Cara komputer mencari solusi terbaik</h1>
+<p class="sub">Metaheuristic, dengan contoh algoritma CSO 🐱 dan COA 🦝</p>
+<div class="hl">Contoh masalah: membagi 50 tugas ke 10 server agar semuanya selesai secepat mungkin. Ada 10<sup>50</sup> cara membaginya, terlalu banyak untuk dicoba satu per satu. Metaheuristic adalah cara mencari yang cerdik tanpa mengecek semuanya.</div>
+<p class="sm" style="color:var(--mut)">Gulir atau tekan tombol panah bawah untuk lanjut.</p></section>
+
+<section class="sl"><p class="tag">1 · Masalah</p><h2>Optimasi: mencari lembah terdalam</h2>
+<div class="cols"><div>
+<p><b>Optimasi</b> berarti mencari pilihan terbaik dari banyak pilihan.</p>
+<p>Bayangkan sebuah peta berlembah. Setiap titik adalah satu pilihan jawaban, dan tingginya menunjukkan seberapa buruk jawaban itu (misalnya biaya atau waktu). Tugas kita adalah menemukan <b>lembah terdalam</b>.</p>
+<p>Jebakannya: lembah dangkal tampak seperti dasar, padahal masih ada yang lebih dalam.</p></div>
+<div class="k"><svg viewBox="0 0 420 250"><path d="M10 60 C60 60 70 175 110 175 C150 175 160 90 200 90 C240 90 250 210 300 210 C340 210 360 80 410 55" fill="none" stroke="#97a3d3" stroke-width="3"/><circle cx="110" cy="175" r="8" fill="#ff5c9a"/><circle cx="300" cy="210" r="8" fill="#5ad6a0"/><text x="110" y="205" text-anchor="middle">minimum lokal</text><text x="300" y="237" text-anchor="middle">minimum global (terbaik)</text></svg></div></div></section>
+
+<section class="sl"><p class="tag">2 · Kenapa tidak dicoba semua?</p><h2>Brute force vs metaheuristic</h2>
+<p><b>Brute force</b> berarti mencoba semua kemungkinan satu per satu.</p>
+<table><tr><th></th><th>Brute force</th><th>Metaheuristic</th></tr>
+<tr><td>Cara kerja</td><td>Coba semua kemungkinan</td><td>Coba sebagian, belajar dari hasilnya</td></tr>
+<tr><td>Hasil</td><td>Pasti yang terbaik</td><td>Sangat baik, tidak dijamin terbaik mutlak</td></tr>
+<tr><td>Waktu</td><td>Tidak masuk akal untuk masalah besar</td><td>Cepat dan bisa diatur</td></tr>
+<tr><td>Syarat</td><td>Tidak ada</td><td>Cukup bisa menilai “seberapa bagus” sebuah jawaban</td></tr></table></section>
+
+<section class="sl"><p class="tag">3 · Definisi</p><h2>Apa itu metaheuristic?</h2>
+<div class="hl">Strategi pencarian umum yang memakai sekelompok penjelajah dan sedikit keacakan untuk menemukan solusi yang sangat baik dalam waktu wajar.</div>
+<p><b>Heuristic</b> = aturan praktis, biasanya cukup bagus tapi tidak dijamin sempurna. <b>Meta</b> = berlaku umum, tidak terikat satu masalah.</p>
+<p>Langkah dasar hampir semua metaheuristic berbasis populasi:</p>
+<ol><li>Sebar banyak agen di posisi acak.</li><li>Nilai tiap agen dengan fungsi fitness.</li><li>Geser agen dengan aturan tertentu (bagian inilah yang membedakan algoritma, sering ditiru dari perilaku hewan).</li><li>Ulangi, dan catat yang terbaik.</li></ol></section>
+
+<section class="sl"><p class="tag">4 · Istilah penting</p><h2>Istilah yang dipakai</h2>
+<div class="g3 sm">
+<div class="k"><h3>Agen</h3><p>Satu penjelajah. Di simulasi: satu kucing atau koati.</p></div>
+<div class="k"><h3>Populasi</h3><p>Kumpulan seluruh agen.</p></div>
+<div class="k"><h3>Fitness</h3><p>Nilai yang menunjukkan seberapa bagus satu posisi. Di sini: makin rendah makin bagus.</p></div>
+<div class="k"><h3>Iterasi</h3><p>Satu putaran di mana semua agen bergerak sekali.</p></div>
+<div class="k"><h3>Eksplorasi</h3><p>Menjelajah area baru. Mencegah terjebak, tapi lambat.</p></div>
+<div class="k"><h3>Eksploitasi</h3><p>Menggali teliti di sekitar area yang menjanjikan. Cepat, tapi bisa terjebak.</p></div>
+<div class="k"><h3>Konvergensi</h3><p>Agen sudah berkumpul dan nilai terbaik tidak membaik lagi.</p></div>
+<div class="k"><h3>Evaluasi</h3><p>Satu kali menghitung fitness. Di masalah nyata, ini bagian yang paling mahal.</p></div></div></section>
+
+<section class="sl"><p class="tag">5 · Algoritma pertama</p><h2>Cat Swarm Optimization (CSO) 🐱</h2>
+<p class="sub">Optimasi Kawanan Kucing · Chu, Tsai &amp; Pan (2006)</p>
+<p>Kucing lebih sering diam mengamati, dan sesekali berlari mengejar. Dua perilaku itu menjadi dua mode.</p>
+<div class="cols">
+<div class="k cso"><svg viewBox="0 0 220 130"><circle cx="110" cy="65" r="52" fill="none" stroke="#97a3d3" stroke-dasharray="4 4"/><circle cx="78" cy="42" r="4" fill="#97a3d3"/><circle cx="150" cy="88" r="4" fill="#97a3d3"/><circle cx="96" cy="104" r="4" fill="#97a3d3"/><circle cx="70" cy="76" r="4" fill="#97a3d3"/><line x1="110" y1="65" x2="146" y2="40" stroke="#fff" stroke-width="2"/><circle cx="146" cy="40" r="8" fill="none" stroke="#fff" stroke-width="2"/><circle cx="110" cy="65" r="7" fill="#ff5c9a"/></svg>
+<h3>Seeking (mengamati)</h3><p class="sm">Kucing diam, membayangkan beberapa posisi di dekatnya (titik abu-abu), lalu memilih satu. Tujuannya menggali teliti di sekitar (eksploitasi).</p></div>
+<div class="k cso"><svg viewBox="0 0 220 130"><circle cx="185" cy="35" r="9" fill="#5ad6a0"/><text x="185" y="18" text-anchor="middle">terbaik</text><line x1="30" y1="100" x2="176" y2="40" stroke="#97a3d3" stroke-dasharray="4 4"/><line x1="70" y1="60" x2="176" y2="36" stroke="#97a3d3" stroke-dasharray="4 4"/><line x1="95" y1="110" x2="178" y2="42" stroke="#97a3d3" stroke-dasharray="4 4"/><circle cx="30" cy="100" r="7" fill="#ff5c9a"/><circle cx="70" cy="60" r="7" fill="#ff5c9a"/><circle cx="95" cy="110" r="7" fill="#ff5c9a"/></svg>
+<h3>Tracing (mengejar)</h3><p class="sm">Kucing berlari menuju kucing terbaik. Tujuannya menjelajah dengan arah yang jelas (eksplorasi).</p></div></div></section>
+
+<section class="sl"><p class="tag">6 · CSO lebih dalam</p><h2>Parameter dan rumus CSO</h2>
+<p>Tiap iterasi, kucing dibagi acak ke dua mode sesuai nilai <b>MR</b>.</p>
+<table><tr><th>Singkatan</th><th>Kepanjangan</th><th>Artinya</th></tr>
+<tr><td><b>MR</b></td><td>Mixture Ratio</td><td>Persentase kucing yang berada di mode tracing. Besar: cepat berkumpul, tapi mudah terjebak.</td></tr>
+<tr><td><b>SMP</b></td><td>Seeking Memory Pool</td><td>Jumlah posisi kandidat yang dibayangkan tiap kucing seeking. Besar: lebih teliti, tapi lebih banyak evaluasi.</td></tr>
+<tr><td><b>SRD</b></td><td>Seeking Range of the selected Dimension</td><td>Seberapa jauh kandidat boleh bergeser dari posisi kucing.</td></tr></table>
+<p style="margin-top:12px">Rumus mode tracing:</p>
+<div class="fm">v = w·v + c·r·(terbaik − posisi)
+posisi = posisi + v</div>
+<p class="sm"><b>v</b> = kecepatan (arah dan jarak langkah) · <b>w</b> = momentum dari langkah sebelumnya · <b>c</b> = kekuatan tarikan ke yang terbaik · <b>r</b> = angka acak 0 sampai 1</p></section>
+
+<section class="sl"><p class="tag">7 · Algoritma kedua</p><h2>Coati Optimization Algorithm (COA) 🦝</h2>
+<p class="sub">Algoritma Optimasi Koati · Dehghani dkk. (2023)</p>
+<p>Koati adalah hewan mirip rakun. Tiap iterasi punya dua fase.</p>
+<div class="cols">
+<div class="k coa"><svg viewBox="0 0 220 140"><circle cx="110" cy="22" r="9" fill="#5ad6a0"/><text x="126" y="26">iguana (terbaik)</text><line x1="40" y1="70" x2="104" y2="28" stroke="#97a3d3" stroke-dasharray="4 4"/><line x1="180" y1="70" x2="116" y2="28" stroke="#97a3d3" stroke-dasharray="4 4"/><circle cx="40" cy="70" r="7" fill="#4de1ff"/><circle cx="180" cy="70" r="7" fill="#4de1ff"/><text x="40" y="90" text-anchor="middle">pohon</text><rect x="45" y="105" width="10" height="10" fill="none" stroke="#fff" stroke-width="2"/><text x="62" y="115">G</text><line x1="164" y1="112" x2="58" y2="110" stroke="#97a3d3" stroke-dasharray="4 4"/><circle cx="170" cy="112" r="7" fill="#4de1ff"/><text x="170" y="134" text-anchor="middle">tanah</text></svg>
+<h3>Fase 1: berburu iguana</h3><p class="sm">Koati di pohon mendekati iguana (posisi terbaik). Koati di tanah mendekati titik G, tempat iguana jatuh secara acak, tapi hanya jika G lebih bagus dari posisinya. Kalau tidak, ia menjauh.</p>
+<div class="fm">pohon: x + r·(iguana − I·x)
+tanah: x + r·(G − I·x)  atau  x + r·(x − G)</div></div>
+<div class="k coa"><svg viewBox="0 0 220 140"><circle cx="110" cy="62" r="56" fill="none" stroke="#97a3d3" stroke-dasharray="4 4"/><circle cx="110" cy="62" r="30" fill="none" stroke="#97a3d3" stroke-dasharray="4 4"/><circle cx="110" cy="62" r="14" fill="none" stroke="#97a3d3" stroke-dasharray="4 4"/><circle cx="110" cy="62" r="6" fill="#4de1ff"/><text x="110" y="136" text-anchor="middle">jangkauan makin kecil</text></svg>
+<h3>Fase 2: menghindar predator</h3><p class="sm">Tiap koati melangkah kecil di sekitarnya. Seiring iterasi, jangkauan langkah mengecil sehingga pencarian makin halus.</p>
+<div class="fm">x + (1 − 2r) · acak(−batas, +batas)
+batas = jangkauan / t</div></div></div>
+<p class="sm" style="margin-top:12px"><b>r</b> = angka acak 0–1 · <b>I</b> = angka acak 1 atau 2 · <b>G</b> = posisi acak tempat iguana jatuh · <b>t</b> = nomor iterasi. Posisi baru hanya dipakai jika lebih baik dari posisi lama.</p></section>
+
+<section class="sl"><p class="tag">8 · Perbandingan</p><h2>CSO vs COA</h2>
+<table><tr><th></th><th>🐱 CSO</th><th>🦝 COA</th></tr>
+<tr><td>Inspirasi</td><td>Kucing: mengamati dan mengejar</td><td>Koati: berburu iguana dan menghindar predator</td></tr>
+<tr><td>Pembagian kerja</td><td>Populasi dibagi dua mode secara acak</td><td>Semua koati menjalani kedua fase, berurutan</td></tr>
+<tr><td>Parameter</td><td>MR, SMP, SRD, kecepatan</td><td>Hampir tidak ada</td></tr>
+<tr><td>Biaya evaluasi</td><td>Tinggi (tiap kucing seeking menilai SMP kandidat)</td><td>Rendah (sekitar 2 evaluasi per koati)</td></tr></table>
+<p style="margin-top:12px">Tidak ada yang selalu menang. Teorema <i>No Free Lunch</i> menyatakan tidak ada algoritma yang terbaik untuk semua masalah.</p></section>
+
+<section class="sl"><p class="tag">9 · Penerapan</p><h2>Metaheuristic di komputasi awan</h2>
+<table><tr><th>Masalah di cloud</th><th>Yang dioptimalkan</th></tr>
+<tr><td><b>Task scheduling</b>: tugas dijalankan di VM mana</td><td>Waktu selesai total (makespan), biaya, energi</td></tr>
+<tr><td><b>VM placement</b>: VM ditaruh di server fisik mana</td><td>Jumlah server aktif, konsumsi listrik</td></tr>
+<tr><td><b>Load balancing</b>: pembagian beban kerja</td><td>Beban merata, waktu respons cepat</td></tr>
+<tr><td><b>Autoscaling</b>: menambah atau mengurangi sumber daya otomatis</td><td>Biaya vs performa sesuai SLA</td></tr></table>
+<p class="sm" style="margin-top:12px"><b>VM</b> (Virtual Machine) = komputer virtual yang berjalan di server awan · <b>SLA</b> (Service Level Agreement) = janji kualitas layanan, misalnya waktu respons maksimal · <b>Makespan</b> = waktu sampai seluruh tugas selesai</p></section>
+
+<section class="sl"><p class="tag">10 · Contoh</p><h2>Dari posisi agen menjadi jadwal tugas</h2>
+<p>Ada 6 tugas dan 3 VM (VM-B dua kali lebih cepat). Satu agen membawa 6 angka, satu per tugas. Angkanya dibulatkan ke bawah menjadi nomor VM: 0 = A, 1 = B, 2 = C.</p>
+<div class="fm">posisi agen : 0,4  2,7  1,1  0,2  2,2  1,8
+dibulatkan  :  A    C    B    A    C    B</div>
+<div class="k sm"><div class="row"><b>VM-A (×1)</b><div class="bar"><span class="blk" style="width:40%">T1 · 4</span><span class="blk" style="width:30%">T4 · 3</span></div></div>
+<div class="row"><b>VM-B (×2)</b><div class="bar"><span class="blk" style="width:35%">T3 · 7÷2</span><span class="blk" style="width:30%">T6 · 6÷2</span></div></div>
+<div class="row"><b>VM-C (×1)</b><div class="bar"><span class="blk" style="width:20%">T2 · 2</span><span class="blk" style="width:50%">T5 · 5</span></div></div></div>
+<p style="margin-top:12px"><b>Fitness = makespan = 7,0.</b> Metaheuristic mencari posisi agen yang menghasilkan angka ini sekecil mungkin. Simulasi 3D di sini adalah versi 2 variabel dari proses yang sama.</p></section>
+
+<section class="sl"><p class="tag">11 · Di aplikasi ini</p><h2>Cara membaca simulasi dan game</h2>
+<div class="g3">
+<div class="k"><h3>🔬 Simulasi</h3><p class="sm">Pilih algoritma dan fungsi uji, lalu tekan Mulai. Titik terbaik makin rendah, dan grafik di kanan harus menurun.</p></div>
+<div class="k"><h3>⚔️ Duel</h3><p class="sm">CSO dan COA berlomba di medan yang sama. Bandingkan nilai terbaik dan jumlah evaluasi.</p></div>
+<div class="k"><h3>🎮 Game</h3><p class="sm">Kamu mencari harta (optimum global) di medan berkabut, hanya dengan petunjuk suhu. Ini persis masalah optimasi.</p></div></div>
+<p style="margin-top:14px">Yang bisa diamati: di fungsi Rastrigin, apakah salah satu algoritma sering terjebak di lembah dangkal? Naikkan MR di CSO, dan lihat apakah kucing lebih cepat berkumpul.</p></section>
+
+<section class="sl"><p class="tag">Penutup</p><h2>Ringkasan dan daftar singkatan</h2>
+<ul><li>Metaheuristic mencari solusi sangat baik tanpa mengecek semua kemungkinan.</li><li>CSO membagi kucing ke mode mengamati dan mengejar. COA memakai dua fase berurutan.</li><li>Algoritma yang baik menyeimbangkan eksplorasi dan eksploitasi.</li></ul>
+<table class="sm"><tr><th>Singkatan</th><th>Kepanjangan</th></tr>
+<tr><td>CSO</td><td>Cat Swarm Optimization (Optimasi Kawanan Kucing)</td></tr>
+<tr><td>COA</td><td>Coati Optimization Algorithm (Algoritma Optimasi Koati)</td></tr>
+<tr><td>PSO</td><td>Particle Swarm Optimization, algoritma lain yang rumus gerak mode tracing CSO mirip dengannya</td></tr>
+<tr><td>MR · SMP · SRD</td><td>Mixture Ratio · Seeking Memory Pool · Seeking Range of the selected Dimension</td></tr>
+<tr><td>VM · SLA</td><td>Virtual Machine · Service Level Agreement</td></tr></table>
+<div class="cta"><button class="primary" id="goSim">Buka Simulasi</button><button class="primary alt" id="goGame">Main Game</button></div>
+<p class="hint">Referensi: Chu, Tsai &amp; Pan (2006), Cat Swarm Optimization, PRICAI. Dehghani dkk. (2023), Coati Optimization Algorithm, Knowledge-Based Systems.</p></section>
+
+</div><div id="lprog"></div></div>
+<div id="toast"></div>
+
+<div id="help" hidden>
+  <div class="card2 glass">
+    <h2>Tentang simulasi</h2>
+    <p>Semua agen bergerak di permukaan 3D sebuah fungsi uji. <b>Tujuannya: menemukan titik terendah</b> (nilai fungsi minimum). Tinggi permukaan = nilai fungsi.</p>
+    <h4>🐱 Cat Swarm Optimization (CSO)</h4>
+    <ul>
+      <li>Tiap kucing berada di salah satu mode: <b>seeking</b> (mengamati, tenang) atau <b>tracing</b> (mengejar, menyala merah muda). Rasio mengejar diatur lewat <b>MR</b>.</li>
+      <li><b>Seeking</b>: kucing membuat <b>SMP</b> salinan posisi, menggeser tiap salinan sedikit (<b>SRD</b>), lalu memilih satu kandidat secara roulette berdasarkan fitness. Titik-titik kandidat ditampilkan samar.</li>
+      <li><b>Tracing</b>: kecepatan kucing ditarik ke posisi kucing terbaik (seperti PSO). Sinar merah muda menandai posisi terbaik.</li>
+    </ul>
+    <h4>🦝 Coati Optimization Algorithm (COA)</h4>
+    <ul>
+      <li><b>Fase 1 · berburu iguana (eksplorasi)</b>: iguana = solusi terbaik di atas pohon. Separuh koati memanjat mendekatinya (menyala hijau). Iguana lalu jatuh ke posisi acak, dan separuh lainnya mendekat atau menjauh darinya tergantung nilai fitness.</li>
+      <li><b>Fase 2 · menghindar predator (eksploitasi)</b>: koati melangkah acak di sekitar posisinya (menyala oranye dan sedikit membesar), langkahnya mengecil seiring iterasi.</li>
+      <li>Posisi baru hanya diterima jika lebih baik (greedy).</li>
+    </ul>
+    <h4>⚔️ Mode Duel</h4>
+    <p>Kedua populasi mulai dari posisi awal yang sama pada medan yang sama, jadi perbandingannya adil. Perhatikan jumlah <i>evals</i>: CSO butuh banyak evaluasi tiap iterasi.</p>
+    <h4>🎮 Game</h4>
+    <p>Jelajahi medan yang berkabut sambil berlomba dengan dua tim bot. Gunakan warna dan nilai suhu untuk menebak arah, dan Sonar untuk melihat area luas. Pemenang adalah yang pertama mencapai area harta karun.</p>
+    <div class="btns"><button id="helpClose" class="primary wide">Mengerti</button></div>
+  </div>
+</div>
+
+<!-- ============ ALGORITMA (murni, tanpa dependensi) ============ -->
+<script>
+(function(global){
+'use strict';
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const TAU=Math.PI*2;
+const FUNCS={
+  sphere:{label:'Sphere · satu lembah',R:5,gamma:.8,opts:[[0,0]],f:(x,y)=>x*x+y*y},
+  rastrigin:{label:'Rastrigin · banyak lokal minimum',R:5.12,gamma:.9,opts:[[0,0]],f:(x,y)=>20+x*x+y*y-10*(Math.cos(TAU*x)+Math.cos(TAU*y))},
+  ackley:{label:'Ackley · lubang di dataran',R:5,gamma:.75,opts:[[0,0]],f:(x,y)=>-20*Math.exp(-.2*Math.sqrt(.5*(x*x+y*y)))-Math.exp(.5*(Math.cos(TAU*x)+Math.cos(TAU*y)))+Math.E+20},
+  himmelblau:{label:'Himmelblau · 4 optimum',R:5,gamma:.45,opts:[[3,2],[-2.805118,3.131312],[-3.77931,-3.283186],[3.584428,-1.848126]],f:(x,y)=>Math.pow(x*x+y-11,2)+Math.pow(x+y*y-7,2)},
+  rosenbrock:{label:'Rosenbrock · lembah pisang',R:3,gamma:.22,opts:[[1,1]],f:(x,y)=>Math.pow(1-x,2)+100*Math.pow(y-x*x,2)}
+};
+class Problem{
+  constructor(key,rng){const d=FUNCS[key];this.key=key;this.label=d.label;this.R=d.R;this.gamma=d.gamma;this.baseF=d.f;this.baseOpts=d.opts;this.randomizeShift(rng);}
+  randomizeShift(rng){
+    let m=0;for(const o of this.baseOpts)m=Math.max(m,Math.abs(o[0]),Math.abs(o[1]));
+    const allow=Math.max(0,.85*this.R-m);
+    this.sx=(rng()*2-1)*allow;this.sy=(rng()*2-1)*allow;
+    this.opts=this.baseOpts.map(o=>[o[0]+this.sx,o[1]+this.sy]);
+    let mx=0;const n=64,R=this.R;
+    for(let i=0;i<=n;i++)for(let j=0;j<=n;j++){const v=this.f(-R+2*R*i/n,-R+2*R*j/n);if(v>mx)mx=v;}
+    this.fmax=mx||1;
+  }
+  f(x,y){return this.baseF(x-this.sx,y-this.sy);}
+  norm(x,y){const v=this.f(x,y)/this.fmax;return Math.pow(v<0?0:v>1?1:v,this.gamma);}
+  distToOpt(x,y){let m=Infinity;for(const o of this.opts){const d=Math.hypot(x-o[0],y-o[1]);if(d<m)m=d;}return m;}
+}
+
+/* ---------- Cat Swarm Optimization ---------- */
+class CSO{
+  constructor(prob,o,rng){
+    this.kind='cso';this.prob=prob;this.rng=rng;this.R=prob.R;
+    this.N=o.N||24;this.MR=o.MR!=null?o.MR:.25;this.SMP=o.SMP||5;this.SRD=o.SRD!=null?o.SRD:.2;this.CDC=o.CDC||1;this.SPC=true;
+    this.w=.6;this.c1=2.0;this.vmaxF=.25;
+    this.evals=0;this.iter=0;this.candidates=[];this.agents=[];this.lastPhase='';
+    const R=this.R;
+    for(let i=0;i<this.N;i++){
+      const p=o.init&&o.init[i];
+      const x=p?p.x:(rng()*2-1)*R,y=p?p.y:(rng()*2-1)*R;
+      this.agents.push({x,y,vx:(rng()*2-1)*R*.05,vy:(rng()*2-1)*R*.05,f:this.ev(x,y),mode:'seek'});
+    }
+    this.best={x:0,y:0,f:Infinity};this._upd();this.history=[this.best.f];
+  }
+  ev(x,y){this.evals++;return this.prob.f(x,y);}
+  _cl(v){const R=this.R;return v<-R?-R:v>R?R:v;}
+  _upd(){for(const a of this.agents)if(a.f<this.best.f){this.best.x=a.x;this.best.y=a.y;this.best.f=a.f;}}
+  step(){
+    const N=this.N,rng=this.rng;
+    const nT=Math.max(1,Math.min(N-1,Math.round(this.MR*N)));
+    const idx=[];for(let i=0;i<N;i++)idx.push(i);
+    for(let i=N-1;i>0;i--){const j=Math.floor(rng()*(i+1));const t=idx[i];idx[i]=idx[j];idx[j]=t;}
+    for(let i=0;i<N;i++)this.agents[idx[i]].mode=i<nT?'trace':'seek';
+    this.candidates.length=0;
+    const g={x:this.best.x,y:this.best.y};
+    for(const a of this.agents){if(a.mode==='trace')this._trace(a,g);else this._seek(a);}
+    this._upd();this.iter++;this.history.push(this.best.f);this.lastPhase='cso';
+    return{iterDone:true,label:'cso'};
+  }
+  _seek(a){
+    const R=this.R,rng=this.rng,S=this.SMP,cand=[];
+    const nc=this.SPC?S-1:S;
+    for(let k=0;k<nc;k++){
+      let x=a.x,y=a.y;
+      const both=this.CDC>=2;const dx=both||rng()<.5;const dy=both||!dx;
+      if(dx)x=this._cl(x+(rng()*2-1)*this.SRD*R);
+      if(dy)y=this._cl(y+(rng()*2-1)*this.SRD*R);
+      cand.push({x,y,f:this.ev(x,y)});this.candidates.push({x,y});
+    }
+    if(this.SPC)cand.push({x:a.x,y:a.y,f:a.f});
+    let fmin=Infinity,fmax=-Infinity;
+    for(const c of cand){if(c.f<fmin)fmin=c.f;if(c.f>fmax)fmax=c.f;}
+    let pick;
+    if(fmax-fmin<1e-12)pick=cand[Math.floor(rng()*cand.length)];
+    else{
+      let sum=0;const p=cand.map(c=>{const v=(fmax-c.f)/(fmax-fmin);sum+=v;return v;});
+      let r=rng()*sum;pick=cand[cand.length-1];
+      for(let i=0;i<p.length;i++){r-=p[i];if(r<=0){pick=cand[i];break;}}
+    }
+    a.x=pick.x;a.y=pick.y;a.f=pick.f;
+  }
+  _trace(a,g){
+    const R=this.R,rng=this.rng,vm=this.vmaxF*R;
+    a.vx=this.w*a.vx+this.c1*rng()*(g.x-a.x);a.vy=this.w*a.vy+this.c1*rng()*(g.y-a.y);
+    a.vx=Math.max(-vm,Math.min(vm,a.vx));a.vy=Math.max(-vm,Math.min(vm,a.vy));
+    a.x+=a.vx;a.y+=a.vy;
+    if(a.x<-R){a.x=-R;a.vx=0;}else if(a.x>R){a.x=R;a.vx=0;}
+    if(a.y<-R){a.y=-R;a.vy=0;}else if(a.y>R){a.y=R;a.vy=0;}
+    a.f=this.ev(a.x,a.y);
+  }
+}
+
+/* ---------- Coati Optimization Algorithm ---------- */
+class COA{
+  constructor(prob,o,rng){
+    this.kind='coa';this.prob=prob;this.rng=rng;this.R=prob.R;
+    this.N=o.N||24;this.T=o.T||100;this.evals=0;this.iter=0;this.phase=0;this.agents=[];
+    this.groundIguana={x:0,y:0};this.lastPhase='';
+    const R=this.R;
+    for(let i=0;i<this.N;i++){
+      const p=o.init&&o.init[i];
+      const x=p?p.x:(rng()*2-1)*R,y=p?p.y:(rng()*2-1)*R;
+      this.agents.push({x,y,f:this.ev(x,y),mode:'ground'});
+    }
+    this.best={x:0,y:0,f:Infinity};this._upd();this.history=[this.best.f];
+  }
+  ev(x,y){this.evals++;return this.prob.f(x,y);}
+  _cl(v){const R=this.R;return v<-R?-R:v>R?R:v;}
+  _upd(){for(const a of this.agents)if(a.f<this.best.f){this.best.x=a.x;this.best.y=a.y;this.best.f=a.f;}}
+  step(){
+    if(this.phase===0){this._p1();this.phase=1;this.lastPhase='p1';return{iterDone:false,label:'p1'};}
+    this._p2();this.phase=0;this.iter++;this.history.push(this.best.f);this.lastPhase='p2';
+    return{iterDone:true,label:'p2'};
+  }
+  _p1(){
+    const R=this.R,rng=this.rng,N=this.N,half=Math.floor(N/2);
+    const ig={x:this.best.x,y:this.best.y};
+    for(let i=0;i<N;i++)this.agents[i].mode=i<half?'climb':'ground';
+    for(let i=0;i<half;i++){
+      const a=this.agents[i],I=Math.round(1+rng());
+      const nx=this._cl(a.x+rng()*(ig.x-I*a.x)),ny=this._cl(a.y+rng()*(ig.y-I*a.y));
+      const f=this.ev(nx,ny);if(f<a.f){a.x=nx;a.y=ny;a.f=f;}
+    }
+    const gx=(rng()*2-1)*R,gy=(rng()*2-1)*R,gf=this.ev(gx,gy);
+    this.groundIguana={x:gx,y:gy};
+    for(let i=half;i<N;i++){
+      const a=this.agents[i],I=Math.round(1+rng());
+      let nx,ny;
+      if(gf<a.f){nx=a.x+rng()*(gx-I*a.x);ny=a.y+rng()*(gy-I*a.y);}
+      else{nx=a.x+rng()*(a.x-gx);ny=a.y+rng()*(a.y-gy);}
+      nx=this._cl(nx);ny=this._cl(ny);
+      const f=this.ev(nx,ny);if(f<a.f){a.x=nx;a.y=ny;a.f=f;}
+    }
+    this._upd();
+  }
+  _p2(){
+    const R=this.R,rng=this.rng;
+    const t=Math.min(Math.max(1,this.iter+1),this.T);
+    const lo=-R/t,hi=R/t;
+    for(const a of this.agents){
+      a.mode='flee';
+      const nx=this._cl(a.x+(1-2*rng())*(lo+rng()*(hi-lo)));
+      const ny=this._cl(a.y+(1-2*rng())*(lo+rng()*(hi-lo)));
+      const f=this.ev(nx,ny);if(f<a.f){a.x=nx;a.y=ny;a.f=f;}
+    }
+    this._upd();
+  }
+}
+global.Algo={mulberry32,FUNCS,Problem,CSO,COA};
+})(typeof window!=='undefined'?window:globalThis);
+</script>
+
+<!-- ============ APLIKASI 3D ============ -->
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const A = window.Algo;
+const $ = id => document.getElementById(id);
+const clamp = (v,a,b) => v<a?a:v>b?b:v;
+const W = 6, SEG = 112, S1 = SEG + 1, STEP = 2*W/SEG, HMAX = 3.4;
+const COL = { cso:0xff5c9a, coa:0x4de1ff };
+const COLS = { cso:'#ff5c9a', coa:'#4de1ff' };
+const newRng = () => A.mulberry32((Math.random()*4294967296)>>>0);
+const lin = c => Math.pow(c,2.2);
+
+/* ---------------- state ---------------- */
+const S = { mode:'sim', algo:'duel', fn:'rastrigin', N:24, speed:1, T:100, MR:.25, SMP:5, SRD:.2,
+            trails:true, ghost:true, wire:false, opt:true, rot:true, running:false };
+const G = { phase:'idle', t:0, limit:60, diff:'normal', key:'rastrigin', px:0, pz:0, tx:null, tz:null, prot:0,
+            bestF:Infinity, curF:0, curN:1, sonarCd:0, sonar:null, count:3, keys:{}, speed:3.6, winR:0.45 };
+const DIFF = { easy:{it:1.8}, normal:{it:1.0}, hard:{it:.55} };
+const GAME_N = 18;
+let prob = null, swarms = [], time = 0, chartDirty = true, statT = 0, frameNo = 0;
+
+/* ---------------- three basics ---------------- */
+const renderer = new THREE.WebGLRenderer({ antialias:true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+$('app').appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0b1030);
+scene.fog = new THREE.FogExp2(0x0b1030, 0.012);
+const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 300);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.dampingFactor = .08; controls.enablePan = false;
+controls.maxPolarAngle = Math.PI*.49; controls.minDistance = 4; controls.maxDistance = 36; controls.autoRotateSpeed = .8;
+function resetCamera(){
+  const k = innerWidth/innerHeight < 1 ? 1.7 : 1;
+  controls.target.set(0,1,0); camera.position.set(11*k,9*k,12*k);
+}
+resetCamera();
+
+scene.add(new THREE.HemisphereLight(0xbfd8ff, 0x1a1040, .95));
+const sun = new THREE.DirectionalLight(0xffffff, 1.15); sun.position.set(8,14,6); scene.add(sun);
+
+{ // bintang
+  const n = 700, p = new Float32Array(n*3);
+  for(let i=0;i<n;i++){ const r=70+Math.random()*50, th=Math.random()*6.283, ph=Math.acos(Math.random()*.92+.05);
+    p[3*i]=r*Math.sin(ph)*Math.cos(th); p[3*i+1]=r*Math.cos(ph); p[3*i+2]=r*Math.sin(ph)*Math.sin(th); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(p,3));
+  scene.add(new THREE.Points(g, new THREE.PointsMaterial({ color:0xffffff, size:.5, transparent:true, opacity:.75, fog:false })));
+}
+{ // alas diorama
+  const base = new THREE.Mesh(new THREE.BoxGeometry(2*W+.6,.5,2*W+.6), new THREE.MeshStandardMaterial({ color:0x151b45, roughness:.6, metalness:.2 }));
+  base.position.y = -.3; scene.add(base);
+  const edge = new THREE.LineSegments(new THREE.EdgesGeometry(base.geometry), new THREE.LineBasicMaterial({ color:0x4de1ff, transparent:true, opacity:.35 }));
+  edge.position.copy(base.position); scene.add(edge);
+}
+
+/* ---------------- terrain ---------------- */
+const PAL = [[0,[1,.82,.4]],[.02,[.75,.9,.35]],[.1,[.2,.8,.6]],[.35,[.12,.45,.8]],[.7,[.3,.2,.65]],[1,[.22,.1,.4]]];
+const FOG = [lin(.14), lin(.18), lin(.34)];
+function palColor(n,out){
+  for(let i=1;i<PAL.length;i++){
+    if(n<=PAL[i][0]){ const a=PAL[i-1], b=PAL[i], t=(n-a[0])/(b[0]-a[0]);
+      for(let k=0;k<3;k++) out[k]=a[1][k]+(b[1][k]-a[1][k])*t; return; }
+  }
+  const l=PAL[PAL.length-1][1]; out[0]=l[0]; out[1]=l[1]; out[2]=l[2];
+}
+const terrain = { geo:null, mesh:null, wire:null, pos:null, col:null, heights:null, base:null, reveal:null, cur:null, normDirty:false };
+function initTerrain(){
+  const n = S1*S1;
+  const geo = new THREE.PlaneGeometry(2*W, 2*W, SEG, SEG); geo.rotateX(-Math.PI/2);
+  geo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(n*3), 3));
+  geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(0,1.7,0), 11);
+  terrain.geo = geo; terrain.pos = geo.attributes.position.array; terrain.col = geo.attributes.color.array;
+  terrain.heights = new Float32Array(n); terrain.cur = new Float32Array(n);
+  terrain.base = new Float32Array(n*3); terrain.reveal = new Float32Array(n);
+  terrain.mesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors:true, roughness:.85, metalness:.05, side:THREE.DoubleSide }));
+  terrain.mesh.frustumCulled = false; scene.add(terrain.mesh);
+  terrain.wire = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color:0xffffff, wireframe:true, transparent:true, opacity:.09 }));
+  terrain.wire.position.y = .01; terrain.wire.frustumCulled = false; terrain.wire.visible = false; scene.add(terrain.wire);
+}
+function refreshVertex(i){
+  const r = terrain.reveal[i], y = terrain.heights[i]*r;
+  terrain.pos[3*i+1] = y; terrain.cur[i] = y;
+  const k = 3*i;
+  for(let c=0;c<3;c++) terrain.col[k+c] = FOG[c] + (terrain.base[k+c]-FOG[c])*r;
+}
+function refreshAll(){
+  for(let i=0;i<S1*S1;i++) refreshVertex(i);
+  terrain.geo.attributes.position.needsUpdate = true; terrain.geo.attributes.color.needsUpdate = true;
+  terrain.geo.computeVertexNormals(); terrain.normDirty = false;
+}
+function buildTerrain(p, fog){
+  if(!terrain.geo) initTerrain();
+  const R = p.R, tmp = [0,0,0];
+  for(let iz=0; iz<=SEG; iz++) for(let ix=0; ix<=SEG; ix++){
+    const i = iz*S1+ix, X = -W+ix*STEP, Z = -W+iz*STEP;
+    const n = p.norm(X/W*R, Z/W*R);
+    terrain.heights[i] = HMAX*n;
+    palColor(n, tmp);
+    const cont = .9 + .1*Math.cos(n*45);
+    for(let c=0;c<3;c++) terrain.base[3*i+c] = lin(clamp(tmp[c]*cont,0,1));
+    terrain.pos[3*i] = X; terrain.pos[3*i+2] = Z;
+    terrain.reveal[i] = fog ? 0 : 1;
+  }
+  refreshAll();
+}
+function revealAround(X,Z,rad){
+  const ix0=Math.max(0,Math.floor((X-rad+W)/STEP)), ix1=Math.min(SEG,Math.ceil((X+rad+W)/STEP));
+  const iz0=Math.max(0,Math.floor((Z-rad+W)/STEP)), iz1=Math.min(SEG,Math.ceil((Z+rad+W)/STEP));
+  let ch = false;
+  for(let iz=iz0; iz<=iz1; iz++) for(let ix=ix0; ix<=ix1; ix++){
+    const d = Math.hypot(-W+ix*STEP-X, -W+iz*STEP-Z); if(d>rad) continue;
+    let v = d<rad*.55 ? 1 : 1-(d-rad*.55)/(rad*.45); v = v*v*(3-2*v);
+    const i = iz*S1+ix;
+    if(v > terrain.reveal[i]+.01){ terrain.reveal[i] = v; refreshVertex(i); ch = true; }
+  }
+  if(ch){ terrain.geo.attributes.position.needsUpdate = true; terrain.geo.attributes.color.needsUpdate = true; terrain.normDirty = true; }
+}
+function surfaceY(X,Z){
+  let fx = clamp((X+W)/STEP, 0, SEG-1e-4), fz = clamp((Z+W)/STEP, 0, SEG-1e-4);
+  const ix = Math.floor(fx), iz = Math.floor(fz), tx = fx-ix, tz = fz-iz, c = terrain.cur;
+  const a = c[iz*S1+ix], b = c[iz*S1+ix+1], d = c[(iz+1)*S1+ix], e = c[(iz+1)*S1+ix+1];
+  return (a*(1-tx)+b*tx)*(1-tz) + (d*(1-tx)+e*tx)*tz;
+}
+
+/* ---------------- optimum markers ---------------- */
+const optGroup = new THREE.Group(); scene.add(optGroup);
+const goldMat = new THREE.MeshStandardMaterial({ color:0xffd166, emissive:0xffa800, emissiveIntensity:.9, roughness:.3, metalness:.6 });
+const beamGold = new THREE.MeshBasicMaterial({ color:0xffd166, transparent:true, opacity:.3, blending:THREE.AdditiveBlending, depthWrite:false, side:THREE.DoubleSide });
+const gemGeo = new THREE.OctahedronGeometry(.24), ringGeo = new THREE.TorusGeometry(.38,.035,8,40), beamGeo = new THREE.CylinderGeometry(.04,.04,5,8,1,true);
+function buildOpt(){
+  while(optGroup.children.length) optGroup.remove(optGroup.children[0]);
+  for(const o of prob.opts){
+    const g = new THREE.Group(), X = o[0]/prob.R*W, Z = o[1]/prob.R*W;
+    const ring = new THREE.Mesh(ringGeo, goldMat); ring.rotation.x = Math.PI/2; ring.position.y = .06;
+    const gem = new THREE.Mesh(gemGeo, goldMat); gem.position.y = .9;
+    const beam = new THREE.Mesh(beamGeo, beamGold); beam.position.y = 2.5;
+    g.add(ring, gem, beam); g.position.set(X, 0, Z); g.userData.gem = gem; optGroup.add(g);
+  }
+}
+
+/* ---------------- creatures ---------------- */
+const GEO = { sph:new THREE.SphereGeometry(1,16,12), cone:new THREE.ConeGeometry(1,1,6), cyl:new THREE.CylinderGeometry(1,1,1,8) };
+for(const k in GEO) GEO[k].userData.shared = true;
+function M(geo,mat,sx,sy,sz,x,y,z){ const m = new THREE.Mesh(geo,mat); m.scale.set(sx,sy,sz); m.position.set(x,y,z); return m; }
+const mkMat = c => new THREE.MeshStandardMaterial({ color:c, roughness:.6, metalness:.05, emissive:0x000000, emissiveIntensity:0 });
+const darkMat = new THREE.MeshStandardMaterial({ color:0x1b1030, roughness:.5 });
+function makeCat(){
+  const g = new THREE.Group(), m = mkMat(0xff6fa5), pink = mkMat(0xffc2d9);
+  g.add(M(GEO.sph,m,.2,.18,.3, 0,.22,0));
+  g.add(M(GEO.sph,m,.15,.14,.14, 0,.36,.27));
+  for(const s of [-1,1]){
+    const ear = M(GEO.cone,m,.06,.13,.06, s*.085,.5,.27); ear.rotation.z = -s*.25; g.add(ear);
+    g.add(M(GEO.sph,darkMat,.025,.025,.025, s*.06,.385,.4));
+  }
+  g.add(M(GEO.sph,pink,.04,.03,.03, 0,.34,.405));
+  const tail = M(GEO.cyl,m,.03,.34,.03, 0,.385,-.41); tail.rotation.x = -.9; g.add(tail);
+  return { group:g, mats:[m,pink] };
+}
+function makeCoati(){
+  const g = new THREE.Group(), m = mkMat(0x2fd0e0), cream = mkMat(0xf3e6c8), ring2 = mkMat(0x1d6f86);
+  g.add(M(GEO.sph,m,.15,.14,.32, 0,.22,0));
+  g.add(M(GEO.sph,m,.12,.11,.14, 0,.3,.3));
+  const sn = M(GEO.cone,cream,.06,.22,.06, 0,.27,.52); sn.rotation.x = Math.PI/2; g.add(sn);
+  g.add(M(GEO.sph,darkMat,.03,.03,.03, 0,.27,.63));
+  for(const s of [-1,1]){ g.add(M(GEO.sph,m,.04,.04,.03, s*.08,.4,.27)); g.add(M(GEO.sph,darkMat,.02,.02,.02, s*.055,.33,.38)); }
+  const mats = [m, cream, ring2];
+  for(let k=0;k<7;k++){ const t = k/6, r = .06-.018*t;
+    g.add(M(GEO.sph, k%2 ? cream : ring2, r,r,r, 0,.26+.42*t*t,-.28-.34*t)); }
+  return { group:g, mats };
+}
+function makeIguana(){
+  const g = new THREE.Group(), m = mkMat(0x9be15d);
+  g.add(M(GEO.sph,m,.1,.08,.26, 0,0,0)); g.add(M(GEO.sph,m,.07,.06,.09, 0,.02,.28));
+  const t = M(GEO.cone,m,.07,.4,.07, 0,0,-.42); t.rotation.x = -Math.PI/2; g.add(t);
+  g.scale.setScalar(1.3); return { group:g, mats:[m] };
+}
+function makeTree(){
+  const g = new THREE.Group(), trunk = mkMat(0x7a4a2a), leaf = new THREE.MeshStandardMaterial({ color:0x2fbf71, emissive:0x0a4a2a, emissiveIntensity:.5, roughness:.7 });
+  g.add(M(GEO.cyl,trunk,.12,1.1,.12, 0,.55,0));
+  g.add(M(GEO.cone,leaf,.55,.8,.55, 0,1.25,0)); g.add(M(GEO.cone,leaf,.42,.7,.42, 0,1.75,0)); g.add(M(GEO.cone,leaf,.3,.6,.3, 0,2.2,0));
+  return g;
+}
+function makeExplorer(){
+  const g = new THREE.Group(), body = new THREE.MeshStandardMaterial({ color:0xffffff, emissive:0x4de1ff, emissiveIntensity:.7, roughness:.3 });
+  g.add(M(GEO.sph,body,.2,.2,.2, 0,.2,0));
+  g.add(M(GEO.sph,darkMat,.13,.07,.1, 0,.24,.12));
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(.34,.03,8,32), new THREE.MeshBasicMaterial({ color:0x4de1ff, transparent:true, opacity:.8 }));
+  ring.rotation.x = Math.PI/2; ring.position.y = .05; g.add(ring);
+  const light = new THREE.PointLight(0x9ff4ff, 1.4, 6); light.position.y = .8; g.add(light);
+  g.userData.ring = ring; return g;
+}
+
+/* ---------------- swarm visual ---------------- */
+class SwarmViz{
+  constructor(sw){
+    this.sw = sw; this.kind = sw.kind; this.hideBest = false; this.fall = null; this.ghostT = 9;
+    const al = sw.algo, R = al.R, L = this.L = 20;
+    this.group = new THREE.Group(); scene.add(this.group);
+    this.agents = [];
+    this.trailMat = new THREE.LineBasicMaterial({ color:COL[this.kind], transparent:true, opacity:.5 });
+    this.trailT = 0;
+    al.agents.forEach(la => {
+      const c = this.kind==='cso' ? makeCat() : makeCoati();
+      const x = la.x/R*W, z = la.y/R*W, y = surfaceY(x,z);
+      c.group.position.set(x,y,z); this.group.add(c.group);
+      const arr = new Float32Array(L*3); for(let k=0;k<L;k++){ arr[3*k]=x; arr[3*k+1]=y+.1; arr[3*k+2]=z; }
+      const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(arr,3));
+      const line = new THREE.Line(geo, this.trailMat); line.frustumCulled = false; line.visible = S.trails; this.group.add(line);
+      const a = Object.assign(c, { x, z, rot:Math.random()*6.28, phase:Math.random()*6.28, mode:'', arr, line });
+      this.agents.push(a); this.styleAgent(a, la.mode);
+    });
+    if(this.kind==='cso'){
+      this.beam = new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,6,10,1,true),
+        new THREE.MeshBasicMaterial({ color:COL.cso, transparent:true, opacity:.4, blending:THREE.AdditiveBlending, depthWrite:false, side:THREE.DoubleSide }));
+      this.group.add(this.beam);
+      const cap = al.N*al.SMP + 60, ga = new Float32Array(cap*3);
+      const gg = new THREE.BufferGeometry(); gg.setAttribute('position', new THREE.BufferAttribute(ga,3)); gg.setDrawRange(0,0);
+      this.ghost = new THREE.Points(gg, new THREE.PointsMaterial({ color:COL.cso, size:.2, transparent:true, opacity:0, depthWrite:false }));
+      this.ghost.frustumCulled = false; this.group.add(this.ghost); this.ghostCap = cap;
+    } else {
+      this.tree = makeTree(); this.group.add(this.tree);
+      this.ig = makeIguana(); this.ig.group.position.y = 2.6; this.tree.add(this.ig.group);
+      this.gi = makeIguana(); this.gi.group.visible = false; this.group.add(this.gi.group);
+    }
+    this.bx = al.best.x/R*W; this.bz = al.best.y/R*W;
+  }
+  styleAgent(a,mode){
+    if(a.mode===mode) return; a.mode = mode;
+    let em = 0x000000, ei = 0, sc = 1;
+    if(this.kind==='cso'){ if(mode==='trace'){ em = 0xff2060; ei = .55; sc = 1.12; } else sc = .95; }
+    else { if(mode==='climb'){ em = 0x7dffb0; ei = .3; } else if(mode==='flee'){ em = 0xffa060; ei = .3; sc = 1.1; } }
+    a.mats.forEach(m => { m.emissive.setHex(em); m.emissiveIntensity = ei; });
+    a.group.scale.setScalar(sc);
+  }
+  setTrails(v){ this.agents.forEach(a => a.line.visible = v); }
+  onStep(res){
+    const al = this.sw.algo, R = al.R;
+    this.agents.forEach((a,i) => this.styleAgent(a, al.agents[i].mode));
+    if(this.kind==='cso'){
+      const arr = this.ghost.geometry.attributes.position.array, n = Math.min(al.candidates.length, this.ghostCap);
+      for(let i=0;i<n;i++){ const c = al.candidates[i], x = c.x/R*W, z = c.y/R*W;
+        arr[3*i] = x; arr[3*i+1] = surfaceY(x,z)+.12; arr[3*i+2] = z; }
+      this.ghost.geometry.setDrawRange(0,n); this.ghost.geometry.attributes.position.needsUpdate = true; this.ghostT = 0;
+    } else if(res.label==='p1'){
+      const x = al.groundIguana.x/R*W, z = al.groundIguana.y/R*W; this.fall = { t:0, x, z };
+    }
+  }
+  update(dt,fastF){
+    const al = this.sw.algo, R = al.R, f = 1-Math.exp(-dt*7*fastF);
+    this.trailT += dt; const shift = this.trailT > .045; if(shift) this.trailT = 0;
+    this.agents.forEach((a,i) => {
+      const la = al.agents[i], tx = la.x/R*W, tz = la.y/R*W, px = a.x, pz = a.z;
+      a.x += (tx-a.x)*f; a.z += (tz-a.z)*f;
+      const mx = a.x-px, mz = a.z-pz, sp = Math.hypot(mx,mz)/Math.max(dt,1e-3);
+      if(sp > .15){ let d = Math.atan2(mx,mz)-a.rot; d = Math.atan2(Math.sin(d),Math.cos(d)); a.rot += d*Math.min(1,dt*10); }
+      const hop = Math.abs(Math.sin(time*9+a.phase))*.12*Math.min(1,sp/1.2);
+      const y = surfaceY(a.x,a.z);
+      a.group.position.set(a.x, y+hop, a.z); a.group.rotation.y = a.rot;
+      if(S.mode==='game' || S.trails){
+        if(shift) a.arr.copyWithin(3,0,(this.L-1)*3);
+        a.arr[0] = a.x; a.arr[1] = y+.1; a.arr[2] = a.z; a.line.geometry.attributes.position.needsUpdate = true;
+      }
+    });
+    const bx = al.best.x/R*W, bz = al.best.y/R*W;
+    this.bx += (bx-this.bx)*f; this.bz += (bz-this.bz)*f;
+    const by = surfaceY(this.bx,this.bz);
+    if(this.kind==='cso'){
+      this.beam.visible = !this.hideBest; this.beam.position.set(this.bx, by+3, this.bz);
+      this.ghostT += dt; this.ghost.material.opacity = S.ghost ? Math.max(0,.9-this.ghostT*1.2) : 0;
+    } else {
+      this.tree.visible = !this.hideBest; this.tree.position.set(this.bx, by, this.bz);
+      this.ig.group.rotation.y += dt*1.5; this.ig.group.position.y = 2.6+Math.sin(time*3)*.05;
+      if(this.fall){
+        const fl = this.fall; fl.t += dt; const gy = surfaceY(fl.x,fl.z);
+        this.gi.group.visible = fl.t < 1.3;
+        this.gi.group.position.set(fl.x, gy+.2+Math.max(0,4-fl.t*9), fl.z);
+        this.gi.group.rotation.y += dt*6;
+        this.gi.group.scale.setScalar(fl.t>.9 ? Math.max(.01,1.3*(1.3-fl.t)/.4) : 1.3);
+        if(fl.t>=1.3){ this.fall = null; this.gi.group.visible = false; }
+      }
+    }
+  }
+  dispose(){
+    scene.remove(this.group);
+    this.group.traverse(o => {
+      if(o.geometry && !o.geometry.userData.shared) o.geometry.dispose();
+      if(o.material){ (Array.isArray(o.material)?o.material:[o.material]).forEach(m => { if(m!==darkMat) m.dispose(); }); }
+    });
+  }
+}
+
+/* ---------------- swarms ---------------- */
+function clearSwarms(){ swarms.forEach(s => s.viz.dispose()); swarms = []; chartDirty = true; }
+function createSwarms(mode){
+  clearSwarms();
+  const rng = newRng(), R = prob.R, N = mode==='game' ? GAME_N : S.N, init = [];
+  for(let i=0;i<N;i++) init.push({ x:(rng()*2-1)*R*.92, y:(rng()*2-1)*R*.92 });
+  const kinds = mode==='game' ? ['cso','coa'] : (S.algo==='duel' ? ['cso','coa'] : [S.algo]);
+  for(const kind of kinds){
+    const algo = kind==='cso'
+      ? new A.CSO(prob, { N, MR:S.MR, SMP:S.SMP, SRD:S.SRD, init }, newRng())
+      : new A.COA(prob, { N, T:mode==='game'?100:S.T, init }, newRng());
+    let interval = kind==='cso' ? 1.0 : .5;
+    if(mode==='game'){ const it = DIFF[G.diff].it; interval = kind==='cso' ? it : it/2; }
+    const sw = { kind, algo, acc:0, interval, done:false };
+    sw.viz = new SwarmViz(sw); if(mode==='game') sw.viz.hideBest = true;
+    swarms.push(sw);
+  }
+  chartDirty = true; updateStats();
+}
+function doStep(sw){
+  const r = sw.algo.step(); sw.viz.onStep(r);
+  if(r.iterDone){ chartDirty = true; if(S.mode==='sim' && sw.algo.iter >= S.T) sw.done = true; }
+  return r;
+}
+function stepSwarms(dt){
+  for(const sw of swarms){
+    if(sw.done) continue; sw.acc += dt; let guard = 0;
+    while(sw.acc >= sw.interval && !sw.done && guard++ < 8){ sw.acc -= sw.interval; doStep(sw); }
+  }
+}
+function checkSimDone(){
+  if(S.running && swarms.length && swarms.every(s => s.done)){ S.running = false; syncRun(); toast('Selesai! Lihat hasil akhir di panel kanan.'); }
+}
+function stepOnce(){
+  S.running = false; syncRun();
+  for(const sw of swarms){ if(sw.done) continue; let r; do{ r = doStep(sw); }while(!r.iterDone); }
+  updateStats();
+}
+
+/* ---------------- sim setup & UI ---------------- */
+function setupSim(newShift){
+  if(!prob || prob.key!==S.fn) prob = new A.Problem(S.fn, newRng());
+  else if(newShift) prob.randomizeShift(newRng());
+  buildTerrain(prob,false); buildOpt(); optGroup.visible = S.opt;
+  createSwarms('sim'); S.running = false; syncRun();
+}
+function syncRun(){ $('btnRun').textContent = S.running ? '⏸ Jeda' : '▶ Mulai'; }
+let toastTm = 0;
+function toast(t){ const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toastTm); toastTm = setTimeout(() => el.classList.remove('on'), 2600); }
+function bindSeg(id,cb){ const el = $(id); el.addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return;
+  [...el.children].forEach(c => c.classList.toggle('on', c===b)); cb(b.dataset.v); }); }
+
+for(const k in A.FUNCS){
+  const o1 = document.createElement('option'); o1.value = k; o1.textContent = A.FUNCS[k].label; $('selFn').appendChild(o1);
+  const o2 = o1.cloneNode(true); $('gFn').appendChild(o2);
+}
+{ const r = document.createElement('option'); r.value = 'random'; r.textContent = '🎲 Acak'; $('gFn').insertBefore(r, $('gFn').firstChild); $('gFn').value = 'random'; }
+$('selFn').value = S.fn;
+
+bindSeg('segAlgo', v => { S.algo = v; createSwarms('sim'); S.running = false; syncRun(); });
+$('selFn').addEventListener('change', e => { S.fn = e.target.value; setupSim(false); });
+$('rN').addEventListener('input', e => { S.N = +e.target.value; $('vN').textContent = S.N; createSwarms('sim'); S.running = false; syncRun(); });
+$('rSpd').addEventListener('input', e => { S.speed = +e.target.value; $('vSpd').textContent = S.speed.toFixed(2).replace(/0$/,'')+'×'; });
+$('rT').addEventListener('input', e => { S.T = +e.target.value; $('vT').textContent = S.T;
+  swarms.forEach(s => { if(s.kind==='coa') s.algo.T = S.T; s.done = s.algo.iter >= S.T; }); });
+$('rMR').addEventListener('input', e => { S.MR = +e.target.value; $('vMR').textContent = S.MR.toFixed(2); swarms.forEach(s => { if(s.kind==='cso') s.algo.MR = S.MR; }); });
+$('rSMP').addEventListener('input', e => { S.SMP = +e.target.value; $('vSMP').textContent = S.SMP; swarms.forEach(s => { if(s.kind==='cso') s.algo.SMP = S.SMP; }); });
+$('rSRD').addEventListener('input', e => { S.SRD = +e.target.value; $('vSRD').textContent = S.SRD.toFixed(2); swarms.forEach(s => { if(s.kind==='cso') s.algo.SRD = S.SRD; }); });
+$('cTrail').addEventListener('change', e => { S.trails = e.target.checked; swarms.forEach(s => s.viz.setTrails(S.trails)); });
+$('cGhost').addEventListener('change', e => { S.ghost = e.target.checked; });
+$('cWire').addEventListener('change', e => { S.wire = e.target.checked; terrain.wire.visible = S.wire; });
+$('cOpt').addEventListener('change', e => { S.opt = e.target.checked; if(S.mode==='sim') optGroup.visible = S.opt; });
+$('cRot').addEventListener('change', e => { S.rot = e.target.checked; });
+$('btnRun').addEventListener('click', toggleRun);
+function toggleRun(){
+  if(!swarms.length) return;
+  if(swarms.every(s => s.done)){ createSwarms('sim'); }
+  S.running = !S.running; syncRun();
+}
+$('btnStep').addEventListener('click', stepOnce);
+$('btnReset').addEventListener('click', () => { createSwarms('sim'); S.running = false; syncRun(); });
+$('btnShift').addEventListener('click', () => { setupSim(true); toast('Posisi optimum diacak'); });
+$('panelToggle').addEventListener('click', () => $('panel').classList.toggle('collapsed'));
+$('btnHelp').addEventListener('click', () => $('help').hidden = false);
+$('helpClose').addEventListener('click', () => $('help').hidden = true);
+$('help').addEventListener('click', e => { if(e.target.id==='help') $('help').hidden = true; });
+document.addEventListener('click', e => { const b = e.target.closest('button'); if(b) b.blur(); });
+if(innerWidth < 760) $('panel').classList.add('collapsed');
+
+/* ---------------- stats & chart ---------------- */
+const NAMES = { cso:'🐱 CSO · Cat Swarm', coa:'🦝 COA · Coati' };
+const fmtF = v => !isFinite(v) ? '—' : v===0 ? '0' : v<.001 ? v.toExponential(2) : v.toFixed(v<1?4:3);
+function phaseText(sw){
+  if(sw.kind==='cso'){ const t = sw.algo.agents.filter(a => a.mode==='trace').length; return t+' mengejar · '+(sw.algo.N-t)+' mengamati'; }
+  return sw.algo.lastPhase==='p1' ? 'Fase 1 · berburu iguana' : sw.algo.lastPhase==='p2' ? 'Fase 2 · menghindar predator' : 'siap';
+}
+function updateStats(){
+  if(S.mode!=='sim') return;
+  $('statCards').innerHTML = swarms.map(sw => `<div class="card" style="--c:${COLS[sw.kind]}">
+    <div class="ct">${NAMES[sw.kind]}<span>iter ${sw.algo.iter}/${S.T}${sw.done?' ✓':''}</span></div>
+    <div class="cv">${fmtF(sw.algo.best.f)}</div>
+    <div class="cs">evaluasi ${sw.algo.evals} · ${phaseText(sw)}</div></div>`).join('');
+  if(chartDirty){ drawChart(); chartDirty = false; }
+}
+function drawChart(){
+  const c = $('chart'), dpr = Math.min(devicePixelRatio||1,2), w = c.clientWidth, h = c.clientHeight;
+  if(!w) return;
+  if(c.width !== w*dpr){ c.width = w*dpr; c.height = h*dpr; }
+  const x = c.getContext('2d'); x.setTransform(dpr,0,0,dpr,0,0); x.clearRect(0,0,w,h);
+  const lg = v => Math.log10(Math.max(v,1e-10));
+  let mn = Infinity, mx = -Infinity;
+  swarms.forEach(s => s.algo.history.forEach(v => { const l = lg(v); if(l<mn) mn = l; if(l>mx) mx = l; }));
+  if(!isFinite(mn)){ return; }
+  mx = Math.ceil(mx)+.2; mn = Math.floor(mn)-.2; if(mx-mn<2) mn = mx-2;
+  const pl = 30, pr = 6, pt = 6, pb = 14, X = i => pl+(w-pl-pr)*i/Math.max(S.T,10), Y = v => pt+(h-pt-pb)*(1-(v-mn)/(mx-mn));
+  x.strokeStyle = 'rgba(255,255,255,.1)'; x.fillStyle = 'rgba(200,210,255,.7)'; x.font = '10px system-ui'; x.lineWidth = 1;
+  for(let v=Math.ceil(mn); v<=mx; v++){ const yy = Y(v); x.beginPath(); x.moveTo(pl,yy); x.lineTo(w-pr,yy); x.stroke(); x.fillText('1e'+v, 1, yy+3); }
+  x.fillText('iterasi →', w-52, h-2);
+  swarms.forEach(s => {
+    x.strokeStyle = COLS[s.kind]; x.lineWidth = 2; x.beginPath();
+    s.algo.history.forEach((v,i) => { const px = X(i), py = Y(lg(v)); i ? x.lineTo(px,py) : x.moveTo(px,py); }); x.stroke();
+  });
+}
+
+/* ---------------- game ---------------- */
+let player = null, sonarRing = null;
+const raycaster = new THREE.Raycaster(), _ndc = new THREE.Vector2(), _f = new THREE.Vector3();
+function recKey(){ return 'meta3d_rec_'+G.key+'_'+G.diff; }
+function getRec(){ try{ return localStorage.getItem(recKey()); }catch(e){ return null; } }
+function setRec(v){ try{ localStorage.setItem(recKey(), v); }catch(e){} }
+function showRecords(){ const r = getRec(); $('records').textContent = r ? '🏅 Rekor waktu terbaikmu (medan terakhir): '+(+r).toFixed(1)+' dtk' : ''; }
+
+function enterGameIdle(){
+  S.running = false; clearSwarms(); G.phase = 'idle';
+  if(!prob) prob = new A.Problem(S.fn, newRng());
+  buildTerrain(prob,false); buildOpt(); optGroup.visible = false; removePlayer();
+  ['gTimer','gBoard','gBottom','count','overlay'].forEach(id => $(id).hidden = true);
+  $('panel').hidden = false; $('stats').hidden = true; resetCamera(); controls.maxDistance = 36;
+}
+function removePlayer(){ if(player){ scene.remove(player); player = null; } if(sonarRing){ scene.remove(sonarRing); sonarRing = null; } }
+
+function startGame(){
+  const sel = $('gFn').value, keys = Object.keys(A.FUNCS);
+  G.key = sel==='random' ? keys[Math.floor(Math.random()*keys.length)] : sel;
+  prob = new A.Problem(G.key, newRng());
+  buildTerrain(prob,true); buildOpt(); optGroup.visible = false;
+  createSwarms('game');
+  removePlayer(); player = makeExplorer(); scene.add(player);
+  sonarRing = new THREE.Mesh(new THREE.RingGeometry(.96,1,64).rotateX(-Math.PI/2),
+    new THREE.MeshBasicMaterial({ color:0x7df9ff, transparent:true, opacity:.8, side:THREE.DoubleSide, depthWrite:false }));
+  sonarRing.visible = false; scene.add(sonarRing);
+  // posisi awal pemain: jauh dari harta
+  let px = 0, pz = 0;
+  for(let k=0;k<50;k++){ px = (Math.random()*2-1)*(W-1); pz = (Math.random()*2-1)*(W-1);
+    if(prob.distToOpt(px/W*prob.R, pz/W*prob.R) > prob.R*.6) break; }
+  Object.assign(G, { px, pz, tx:null, tz:null, t:0, bestF:Infinity, sonarCd:0, sonar:null, count:3.2, phase:'count' });
+  G.winR = prob.R*.075; // satuan koordinat fungsi
+  revealAround(px,pz,2.2); refreshAll();
+  controls.target.set(px,.5,pz); camera.position.set(px+7,7,pz+8); controls.maxDistance = 20;
+  $('panel').hidden = true; $('stats').hidden = true; $('overlay').hidden = true;
+  ['gTimer','gBoard','gBottom'].forEach(id => $(id).hidden = false);
+  $('count').hidden = false; $('count').textContent = '3';
+}
+function fireSonar(){
+  if(G.phase!=='play' || G.sonarCd>0) return;
+  G.sonarCd = 7; G.sonar = { r:0, x:G.px, z:G.pz }; sonarRing.visible = true;
+}
+function updatePlayer(dt){
+  const k = G.keys, ix = (k.right?1:0)-(k.left?1:0), iz = (k.up?1:0)-(k.down?1:0);
+  let mx = 0, mz = 0;
+  if(ix || iz){
+    G.tx = null; camera.getWorldDirection(_f); _f.y = 0; if(_f.lengthSq()<1e-6) _f.set(0,0,-1); _f.normalize();
+    mx = _f.x*iz + (-_f.z)*ix; mz = _f.z*iz + _f.x*ix; const l = Math.hypot(mx,mz)||1; mx /= l; mz /= l;
+  } else if(G.tx!==null){
+    const dx = G.tx-G.px, dz = G.tz-G.pz, d = Math.hypot(dx,dz);
+    if(d<.1) G.tx = null; else { mx = dx/d; mz = dz/d; }
+  }
+  const moving = mx || mz;
+  if(moving){
+    G.px = clamp(G.px+mx*G.speed*dt, -W+.1, W-.1); G.pz = clamp(G.pz+mz*G.speed*dt, -W+.1, W-.1);
+    let d = Math.atan2(mx,mz)-G.prot; d = Math.atan2(Math.sin(d),Math.cos(d)); G.prot += d*Math.min(1,dt*12);
+  }
+  player.position.set(G.px, surfaceY(G.px,G.pz)+.04+(moving?Math.abs(Math.sin(time*10))*.08:Math.sin(time*3)*.02), G.pz);
+  player.rotation.y = G.prot; player.userData.ring.scale.setScalar(1+Math.sin(time*4)*.08);
+  revealAround(G.px, G.pz, 1.7);
+  const R = prob.R, fx = G.px/W*R, fy = G.pz/W*R;
+  G.curF = prob.f(fx,fy); G.curN = prob.norm(fx,fy); if(G.curF<G.bestF) G.bestF = G.curF;
+  return prob.distToOpt(fx,fy) < G.winR;
+}
+function tempLabel(n){ return n<.015?'Membara! 🔥':n<.06?'Panas 🌋':n<.18?'Hangat ☀️':n<.4?'Dingin 🌊':'Beku ❄️'; }
+function updateGame(dt){
+  if(G.phase==='count'){
+    G.count -= dt; $('count').textContent = G.count>.2 ? Math.ceil(G.count-.2) : 'GO!';
+    if(G.count<=0){ G.phase = 'play'; $('count').hidden = true; }
+    updatePlayerIdle(); return;
+  }
+  if(G.phase!=='play') return;
+  G.t += dt;
+  const pWin = updatePlayer(dt);
+  stepSwarms(dt);
+  let winner = pWin ? 'player' : null;
+  if(!winner) for(const sw of swarms){
+    for(const a of sw.algo.agents){ if(prob.distToOpt(a.x,a.y) < G.winR){ winner = sw.kind; break; } }
+    if(winner) break;
+  }
+  if(G.sonarCd>0){ G.sonarCd -= dt; }
+  if(G.sonar){
+    G.sonar.r += dt*7; revealAround(G.sonar.x, G.sonar.z, G.sonar.r);
+    sonarRing.position.set(G.sonar.x, surfaceY(G.sonar.x,G.sonar.z)+.3, G.sonar.z);
+    sonarRing.scale.setScalar(Math.max(.01,G.sonar.r)); sonarRing.material.opacity = Math.max(0,.9-G.sonar.r/5.2);
+    if(G.sonar.r>5.2){ G.sonar = null; sonarRing.visible = false; }
+  }
+  // follow cam
+  const tgt = new THREE.Vector3(G.px,.8,G.pz), old = controls.target.clone();
+  tgt.lerp(old, Math.exp(-dt*5)); camera.position.add(tgt.clone().sub(old)); controls.target.copy(tgt);
+  renderHud();
+  if(winner) endGame(winner); else if(G.t>=G.limit) endGame(null);
+}
+function updatePlayerIdle(){
+  player.position.set(G.px, surfaceY(G.px,G.pz)+.04, G.pz); revealAround(G.px,G.pz,1.7);
+}
+function renderHud(){
+  const left = Math.max(0, G.limit-G.t);
+  $('gTimer').textContent = Math.ceil(left); $('gTimer').classList.toggle('low', left<10);
+  const cso = swarms.find(s => s.kind==='cso'), coa = swarms.find(s => s.kind==='coa');
+  $('gBoard').innerHTML = `<div style="color:var(--mut);font-size:11px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px">Nilai terbaik (0 = harta)</div>
+    <div class="r"><span>🧑 Kamu</span><b>${fmtF(G.bestF)}</b></div>
+    <div class="r" style="color:${COLS.cso}"><span>🐱 Tim CSO</span><b>${fmtF(cso.algo.best.f)}</b></div>
+    <div class="r" style="color:${COLS.coa}"><span>🦝 Tim COA</span><b>${fmtF(coa.algo.best.f)}</b></div>`;
+  $('gTemp').textContent = tempLabel(G.curN); $('gF').textContent = fmtF(G.curF);
+  $('gBar').style.width = (100*(1-Math.min(1,G.curN/.5))).toFixed(0)+'%';
+  const b = $('btnSonar'); b.disabled = G.sonarCd>0; b.textContent = G.sonarCd>0 ? '📡 '+Math.ceil(G.sonarCd)+'s' : '📡 Sonar';
+}
+function endGame(winner){
+  G.phase = 'over'; terrain.reveal.fill(1); refreshAll(); optGroup.visible = true;
+  if(G.sonar){ G.sonar = null; sonarRing.visible = false; }
+  const cso = swarms.find(s => s.kind==='cso'), coa = swarms.find(s => s.kind==='coa');
+  const rows = [['🧑 Kamu',G.bestF],['🐱 Tim CSO',cso.algo.best.f],['🦝 Tim COA',coa.algo.best.f]]
+    .map(r => `<div style="display:flex;justify-content:space-between"><span>${r[0]}</span><b>${fmtF(r[1])}</b></div>`).join('');
+  let title, msg;
+  if(winner==='player'){
+    title = '🏆 Kamu menemukan hartanya!';
+    msg = 'Waktu: <b>'+G.t.toFixed(1)+' dtk</b>';
+    const rec = getRec(); if(!rec || G.t < +rec){ setRec(G.t); msg += ' · 🎉 rekor baru!'; }
+  } else if(winner){
+    title = winner==='cso' ? '😿 Tim Kucing (CSO) menang' : '🦝 Tim Koati (COA) menang';
+    msg = 'Mereka menemukan harta pada detik <b>'+G.t.toFixed(1)+'</b>.';
+  } else {
+    const best = Math.min(G.bestF, cso.algo.best.f, coa.algo.best.f);
+    title = '⏰ Waktu habis';
+    msg = 'Tidak ada yang tiba di harta. Paling dekat: <b>'+(best===G.bestF?'kamu 🎉':best===cso.algo.best.f?'Tim CSO':'Tim COA')+'</b>.';
+  }
+  $('ovTitle').textContent = title;
+  $('ovBody').innerHTML = `<p>${msg}</p><div style="margin:10px 0;text-align:left;padding:10px;border-radius:10px;background:rgba(255,255,255,.06)">
+    <div style="color:var(--mut);font-size:12px;margin-bottom:4px">Nilai terbaik masing-masing (makin kecil makin baik)</div>${rows}</div>`;
+  $('ovA').textContent = '🔁 Main lagi'; $('ovB').textContent = '🔬 Ke simulasi';
+  $('ovA').onclick = startGame; $('ovB').onclick = () => setMode('sim');
+  $('overlay').hidden = false; $('gBottom').hidden = true;
+  showRecords();
+}
+$('btnStart').addEventListener('click', startGame);
+$('btnSonar').addEventListener('click', fireSonar);
+bindSeg('segDiff', v => { G.diff = v; showRecords(); });
+$('gFn').addEventListener('change', () => { if($('gFn').value!=='random') G.key = $('gFn').value; showRecords(); });
+
+/* ---------------- input ---------------- */
+const keyMap = { w:'up', arrowup:'up', s:'down', arrowdown:'down', a:'left', arrowleft:'left', d:'right', arrowright:'right' };
+addEventListener('keydown', e => {
+  if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return;
+  const k = e.key.toLowerCase();
+  if(S.mode==='game' && keyMap[k]){ G.keys[keyMap[k]] = true; e.preventDefault(); }
+  else if(k===' '){ e.preventDefault(); if(S.mode==='game') fireSonar(); else toggleRun(); }
+});
+addEventListener('keyup', e => { const k = e.key.toLowerCase(); if(keyMap[k]) G.keys[keyMap[k]] = false; });
+addEventListener('blur', () => { G.keys = {}; });
+let down = null;
+renderer.domElement.addEventListener('pointerdown', e => { down = { x:e.clientX, y:e.clientY, t:performance.now() }; });
+renderer.domElement.addEventListener('pointerup', e => {
+  if(!down) return;
+  const moved = Math.hypot(e.clientX-down.x, e.clientY-down.y), dtm = performance.now()-down.t; down = null;
+  if(S.mode!=='game' || G.phase!=='play' || moved>6 || dtm>400) return;
+  const r = renderer.domElement.getBoundingClientRect();
+  _ndc.set(((e.clientX-r.left)/r.width)*2-1, -((e.clientY-r.top)/r.height)*2+1);
+  raycaster.setFromCamera(_ndc, camera);
+  const hit = raycaster.intersectObject(terrain.mesh)[0];
+  if(hit){ G.tx = clamp(hit.point.x,-W+.1,W-.1); G.tz = clamp(hit.point.z,-W+.1,W-.1); }
+});
+
+/* ---------------- mode switch ---------------- */
+function setMode(m){
+  S.mode = m;
+  $('tabSim').classList.toggle('on', m==='sim'); $('tabGame').classList.toggle('on', m==='game');
+  $('simPanel').hidden = m!=='sim'; $('gamePanel').hidden = m!=='game';
+  if(m==='sim'){
+    G.phase = 'idle'; removePlayer();
+    ['gTimer','gBoard','gBottom','count','overlay'].forEach(id => $(id).hidden = true);
+    $('panel').hidden = false; $('stats').hidden = false; controls.maxDistance = 36; resetCamera();
+    setupSim(false);
+  } else { enterGameIdle(); showRecords(); }
+}
+$('tabSim').addEventListener('click', () => { if(S.mode!=='sim') setMode('sim'); });
+$('tabGame').addEventListener('click', () => { if(S.mode!=='game') setMode('game'); });
+
+/* ---------------- loop ---------------- */
+function resize(){
+  const w = innerWidth, h = innerHeight; renderer.setSize(w,h); camera.aspect = w/h; camera.updateProjectionMatrix(); chartDirty = true;
+}
+addEventListener('resize', resize); resize();
+const clock = new THREE.Clock();
+function frame(){
+  requestAnimationFrame(frame);
+  const dt = Math.min(clock.getDelta(), .05); time += dt; frameNo++;
+  if(S.mode==='sim'){
+    if(S.running){ stepSwarms(dt*S.speed); checkSimDone(); }
+    controls.autoRotate = S.rot;
+    statT += dt; if(statT>.1){ statT = 0; updateStats(); }
+  } else {
+    updateGame(dt);
+    controls.autoRotate = (G.phase==='idle' || G.phase==='over');
+  }
+  const fastF = S.mode==='sim' ? Math.max(1,S.speed) : 1;
+  swarms.forEach(sw => sw.viz.update(dt,fastF));
+  optGroup.children.forEach(g => { const gm = g.userData.gem; gm.rotation.y = time*2; gm.position.y = .9+Math.sin(time*2)*.08; });
+  if(terrain.normDirty && frameNo%6===0){ terrain.geo.computeVertexNormals(); terrain.normDirty = false; }
+  controls.update(); renderer.render(scene,camera);
+}
+setupSim(false);
+frame();
+</script>
+
+<script>
+(function(){
+const $=id=>document.getElementById(id),L=$('learn'),SL=[...L.querySelectorAll('.sl')];
+const cur=()=>{let i=0;SL.forEach((x,k)=>{if(x.offsetTop<=L.scrollTop+L.clientHeight*.4)i=k});return i};
+const prog=()=>{$('lprog').textContent=(cur()+1)+' / '+SL.length+'   ↑ ↓'};
+const go=i=>L.scrollTo({top:SL[Math.max(0,Math.min(SL.length-1,i))].offsetTop,behavior:'smooth'});
+function show(on){
+  if(on&&$('tabGame').classList.contains('on'))$('tabSim').click();
+  L.hidden=!on;$('tabLearn').classList.toggle('on',on);
+  if(on){$('tabSim').classList.remove('on');$('tabGame').classList.remove('on');L.scrollTop=0;prog()}
+}
+$('tabLearn').addEventListener('click',()=>show(true));
+['tabSim','tabGame'].forEach(id=>$(id).addEventListener('click',()=>{if(!L.hidden){L.hidden=true;$('tabLearn').classList.remove('on')}}));
+$('goSim').addEventListener('click',()=>$('tabSim').click());
+$('goGame').addEventListener('click',()=>$('tabGame').click());
+L.addEventListener('scroll',prog,{passive:true});
+document.addEventListener('keydown',e=>{
+  if(L.hidden||e.ctrlKey||e.metaKey||e.altKey)return;const k=e.key;
+  if(['ArrowDown','ArrowRight','PageDown'].includes(k)||(k===' '&&e.target.tagName!=='BUTTON')){e.preventDefault();go(cur()+1)}
+  else if(['ArrowUp','ArrowLeft','PageUp'].includes(k)){e.preventDefault();go(cur()-1)}
+  else if(k==='Home'){e.preventDefault();go(0)}else if(k==='End'){e.preventDefault();go(SL.length-1)}
+});
+let seen=false;try{seen=!!localStorage.getItem('m3d_seen');localStorage.setItem('m3d_seen','1')}catch(e){}
+if(!seen)show(true);
+})();
+</script>
+<noscript><p style="position:fixed;top:70px;left:20px;color:#fff">Aktifkan JavaScript untuk menjalankan simulasi.</p></noscript>
+</body>
+</html>
