@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CSO &amp; COA</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;800&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* === WARNA: ubah di sini === */
+:root{--leaf:#5b8c3a;--leafd:#3f6a28;--orange:#d9822b;--soil:#6b4a2f;--sand:#f3e7c4;--sand2:#e6d49b;--sky:#8ec5e6;--bark:#3e2c1c;--ink:#2e2216}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bark);font-family:Nunito,system-ui,sans-serif;color:var(--ink);height:100vh;overflow:hidden}
+#stage{position:absolute;left:0;top:0;width:1280px;height:720px;transform-origin:0 0;background:linear-gradient(#cfe8f5,var(--sand) 24%);overflow:hidden;border-radius:10px}
+.slide{position:absolute;inset:0 0 44px;padding:36px 60px 10px;display:none;flex-direction:column;gap:12px}
+.slide.on{display:flex;animation:fi .45s}
+@keyframes fi{from{opacity:0;transform:translateY(14px)}}
+@media(prefers-reduced-motion:reduce){.slide.on{animation:none}}
+h1,h2{font-family:Fraunces,Georgia,serif;color:var(--leafd)}
+h1{font-size:60px;line-height:1.1}
+h2{font-size:40px;border-bottom:4px solid var(--orange);padding-bottom:4px;width:max-content;max-width:100%}
+h3{font-size:21px;color:var(--soil);margin-bottom:6px}h3 small{font-weight:400;font-size:15px}
+p,li{font-size:19px;line-height:1.4}
+.g{display:grid;gap:14px;flex:1;min-height:0}
+.card{background:#fffaf0;border:2px solid var(--sand2);border-radius:16px;padding:14px 18px;overflow:auto}
+code{background:#efe0b0;border-radius:6px;padding:2px 7px;font-size:17px;color:var(--bark);font-family:ui-monospace,Consolas,monospace}
+.ctr{margin:auto;text-align:center}.emo{font-size:56px;margin-bottom:10px}.sub{font-size:24px;color:var(--soil);margin:14px 0 22px}
+.mem{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}.mem span{background:var(--leaf);color:#fff;padding:8px 18px;border-radius:30px;font-size:18px}
+#bar{position:absolute;left:0;right:0;bottom:0;height:44px;background:var(--soil);display:flex;align-items:center;justify-content:center;gap:18px;color:var(--sand)}
+#pg{position:absolute;left:0;top:0;height:4px;background:var(--orange);transition:width .3s}
+button,select{font:inherit;font-size:15px;background:var(--sand);color:var(--bark);border:2px solid var(--sand2);border-radius:10px;padding:3px 12px;cursor:pointer}
+button:hover{background:#fff}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--orange)}
+.pn label{display:block;font-size:15px;margin:5px 0}.pn input[type=range]{width:100%;accent-color:var(--leaf)}
+.pn button{padding:0 10px;margin:0 6px}.pn .bt{display:flex;gap:8px;margin-top:8px}.pn .bt button{flex:1}
+.hud{font-size:14px;background:#efe0b0;border-radius:8px;padding:6px 8px;margin-top:6px}
+.sm p,.sm li{font-size:15px;line-height:1.35}.sm ol{padding-left:20px}
+canvas{border-radius:14px;border:3px solid var(--soil);display:block}
+.fl{list-style:none;padding:0;display:flex;flex-direction:column;gap:7px}.fl li{background:#fffaf0;border:2px solid var(--sand2);border-radius:12px;padding:8px 14px;cursor:pointer;font-size:17px}
+.fl li.on{background:var(--leaf);color:#fff;border-color:var(--leafd)}.fd p{margin-bottom:10px}.fd code{font-size:20px;display:block;margin:8px 0;padding:8px 12px}
+ul.l{list-style:none;padding:0}ul.l li{margin-bottom:9px}
+.pro h3{color:var(--leafd)}.con h3{color:var(--orange)}
+table{width:100%;border-collapse:collapse;font-size:16px}th{background:var(--leaf);color:#fff;text-align:left;padding:7px 10px}td{padding:6px 10px;border-bottom:1px solid var(--sand2);background:#fffaf0}td:first-child{font-weight:700;color:var(--soil)}
+.row{display:flex;align-items:center;gap:8px;margin:6px 0}.tr{flex:1;height:28px;background:#efe0b0;border-radius:6px;display:flex;overflow:hidden}.tr i{font-style:normal;color:#fff;font-size:13px;text-align:center;line-height:28px;border-right:2px solid #fffaf0;overflow:hidden}
+.ref li{margin-bottom:8px;font-size:17px}
+</style></head><body>
+<div id="stage"><div id="bar"><div id="pg"></div><button id="pv">◀</button><span id="ct"></span><button id="nx">▶</button></div></div>
+<script>
+/* ============ BAGIAN EDIT (isi slide ada di sini, tidak perlu paham JS) ============
+   Tiap slide = satu blok { t:'jenis', h:'judul', ... }. Salin/hapus blok untuk tambah/kurangi slide.
+   Jenis: title, text, sim, flow, params, pc, app, table, refs, end. Boleh pakai tag HTML (<b>, <code>, <br>).  */
+const MEMBERS=['Nama Anggota 1','Nama Anggota 2','Nama Anggota 3','Nama Anggota 4','Nama Anggota 5'];
+
+const PC_CSO={pro:['Dua mode memberi mekanisme exploration &amp; exploitation yang eksplisit','Konsep mudah dipahami dan dimodifikasi','Banyak varian: binary, parallel, multi-objective, dynamic','Dipakai luas: clustering, TSP, task scheduling'],
+ con:['Rentan premature convergence → terjebak di local optimum','Parameter banyak (MR, SMP, SRD, CDC, SPC, c1) dan sensitif','Seeking mode mengevaluasi SMP salinan → biaya fitness tinggi','CSO murni bisa lambat konvergen; versi asli kontinu, perlu encoding untuk scheduling']};
+const PC_COA={pro:['Sederhana &amp; hampir tanpa parameter (cukup N dan T)','Fase 1 dan 2 jelas memisahkan exploration vs exploitation','Greedy selection menjaga kualitas solusi','Diuji pada 68 benchmark function, CEC-2011 &amp; masalah praktis'],
+ con:['Sebagian peneliti menilai exploration &amp; exploitation masih kurang di masalah sulit','Initial population acak → kurang beragam','Klaim keunggulan awal berasal dari penulis asli; validasi independen masih berkembang','Versi asli kontinu → perlu encoding untuk scheduling']};
+
+const SLIDES=[
+{t:'title',h:'Cat Swarm Optimization<br>&amp; Coati Optimization Algorithm',sub:'Algoritma Metaheuristik untuk Cloud Task Scheduling',course:'Strategi Optimasi Komputasi Awan'},
+
+/* ---------- CSO ---------- */
+{t:'text',h:'CSO: Konsep Dasar',cols:[
+ ['Apa itu CSO?','Algoritma <i>swarm intelligence</i> yang diusulkan Chu, Tsai &amp; Pan (2006), terinspirasi dari perilaku kucing.'],
+ ['Fungsi','Mencari solusi terbaik untuk masalah optimasi. Versi asli bekerja di ruang kontinu dan single-objective.'],
+ ['Ide inti','Kucing punya dua mode: <b>seeking mode</b> (diam waspada → local search) dan <b>tracing mode</b> (mengejar mangsa → bergerak ke best cat). Pembagiannya diatur oleh <b>MR</b>.'],
+ ['Kerangka kerja','Population → hitung fitness → bagi mode via MR → update posisi → bagi ulang → ulangi sampai iterasi maksimum.']]},
+{t:'sim',algo:'cso',h:'Dua Mode Kucing: Seeking &amp; Tracing',cards:[
+ ['😺 Seeking mode: mengamati','<ol><li>Salin posisi kucing sebanyak <b>SMP</b> (titik biru)</li><li>Ubah <b>CDC</b> dimensi sebesar ±<b>SRD</b></li><li>Pilih 1 salinan via roulette wheel (fitness bagus = peluang besar)</li></ol>'],
+ ['😼 Tracing mode: mengejar','<ol><li>Update velocity: <code>v + c1·r·(best − x)</code></li><li>Geser posisi: <code>x + v</code></li><li>Hasilnya: kucing berlari ke arah best cat (⭐)</li></ol>']]},
+{t:'flow',h:'Alur Matematis CSO',steps:[
+ ['Inisialisasi','Buat N kucing: posisi acak, velocity acak, fitness, dan flag mode.','<code>x_i ∈ [lb, ub]</code>'],
+ ['Bagi mode via MR','Sebanyak N × MR kucing masuk tracing mode, sisanya seeking mode. Dibagi ulang acak tiap iterasi.','<code>n_tracing = N × MR</code>'],
+ ['Seeking: salin &amp; mutasi','Buat SMP salinan (jika SPC true, posisi asli ikut jadi kandidat). Pada CDC dimensi terpilih, ubah nilainya.','<code>x_new = (1 ± rand·SRD) · x_old</code>'],
+ ['Seeking: pilih salinan','Hitung fitness tiap salinan lalu pilih satu dengan roulette wheel.','<code>P_i = |FS_i − FS_b| / (FS_max − FS_min)</code>'],
+ ['Tracing: update velocity &amp; posisi','Kucing bergerak menuju best cat, mirip PSO. Velocity dibatasi v_max.','<code>v = v + c1·r1·(x_best − x)</code><code>x = x + v</code>'],
+ ['Update best &amp; ulangi','Simpan best cat, bagi ulang mode, ulangi sampai iterasi maksimum T. Output: best cat.','<code>x_best = argmin f(x)</code>']]},
+{t:'params',h:'Parameter CSO',items:[
+ {n:'MR',d:'Mixture Ratio',min:0,max:1,v:.2,st:.05,lo:'Kecil: hampir semua seeking → local search teliti, konvergen lambat. (Paper asli memakai MR ≈ 2%)',hi:'Besar: banyak tracing → konvergen cepat, risiko premature convergence.'},
+ {n:'SMP',d:'Seeking Memory Pool',min:1,max:20,v:5,st:1,lo:'Sedikit salinan: hemat evaluasi fitness, kandidat kurang beragam.',hi:'Banyak salinan: pencarian lebih teliti, tetapi evaluasi fitness mahal.'},
+ {n:'SRD',d:'Seeking Range of Dimension',min:0,max:100,v:20,st:5,lo:'Kecil (%): lompatan halus → exploitation.',hi:'Besar (%): lompatan jauh → exploration.'},
+ {n:'CDC',d:'Counts of Dimension to Change',min:0,max:100,v:80,st:10,lo:'Sedikit dimensi diubah: salinan mirip aslinya.',hi:'Banyak dimensi diubah: salinan lebih beragam (paper memakai 80%).'},
+ {n:'SPC',d:'Self Position Considering',min:0,max:1,v:1,st:1,sw:1,lo:'false: posisi sendiri tidak ikut jadi kandidat.',hi:'true: posisi sendiri jadi salah satu kandidat → solusi bagus tidak hilang.'},
+ {n:'c1',d:'Koefisien akselerasi tracing',min:.5,max:3,v:2,st:.1,lo:'Kecil: kucing mengejar pelan.',hi:'Besar: mengejar agresif, bisa melewati target.'}],
+ note:'Selain itu ada N (jumlah kucing), T (iterasi maksimum), dan v_max (batas velocity). Nilai tipikal berbeda tiap paper → perlu tuning.'},
+{t:'pc',h:'Kelebihan &amp; Kekurangan CSO',...PC_CSO},
+{t:'app',h:'Penerapan CSO di Cloud Computing',demo:'Demo mini: 8 task dijadwalkan ke 3 VM (kecepatan 1 / 1.5 / 2). Satu kucing = satu vektor indeks VM.',list:[
+ '<b>Mangalampalli dkk. (2021)</b>: multi-objective scheduling dengan prioritas task &amp; VM; makespan, energy, dan power cost lebih baik dari PSO &amp; Cuckoo Search (workload HPC2N &amp; NASA)',
+ '<b>Prioritized scheduling (2023)</b>: menekan makespan, energy consumption, dan SLA violation',
+ '<b>Workflow scheduling</b>: meminimalkan total cost, iterasi lebih sedikit dari PSO',
+ '<b>Hybrid DECSO</b> (Differential Evolution + CSO) diuji di CloudSim',
+ '<b>Encoding</b>: posisi kucing = vektor indeks VM per task; fitness = makespan (atau gabungan cost/energy)']},
+
+/* ---------- COA ---------- */
+{t:'text',h:'COA: Konsep Dasar',cols:[
+ ['Apa itu COA?','Metaheuristik bio-inspired oleh Dehghani, Montazeri, Trojovská &amp; Trojovský (2023), terinspirasi perilaku coati (<i>Nasua</i>).'],
+ ['Fungsi','Mencari solusi terbaik untuk masalah optimasi kontinu dengan aturan sederhana dan hampir tanpa tuning parameter.'],
+ ['Ide inti','Dua perilaku: <b>berburu iguana</b> (exploration) dan <b>kabur dari predator</b> (exploitation). Separuh coati memanjat pohon, separuh menunggu di tanah; coati terbaik dianggap iguana.'],
+ ['Kerangka kerja','Population → Fase 1 (exploration) → Fase 2 (exploitation) → greedy selection → ulangi sampai iterasi maksimum.']]},
+{t:'sim',algo:'coa',h:'Dua Fase Coati: Exploration &amp; Exploitation',cards:[
+ ['🦎 Fase 1: berburu iguana (exploration)','<ol><li>Separuh coati (di pohon) mendekati iguana = solusi terbaik</li><li>Separuh lagi (di tanah) menuju posisi iguana jatuh yang acak: mendekat jika lebih baik, menjauh jika tidak</li></ol>'],
+ ['🛡️ Fase 2: kabur dari predator (exploitation)','<ol><li>Tiap coati melangkah acak dalam batas lokal yang <b>mengecil</b> (lb/t, ub/t)</li><li>Posisi baru diterima hanya jika fitness lebih baik (greedy)</li></ol>']]},
+{t:'flow',h:'Alur Matematis COA',steps:[
+ ['Inisialisasi','Buat N coati secara acak di dalam batas lb dan ub, lalu hitung fitness.','<code>x_ij = lb_j + r·(ub_j − lb_j)</code>'],
+ ['Tentukan iguana','Coati terbaik saat ini dianggap sebagai iguana di atas pohon.','<code>Iguana = X_best</code>'],
+ ['Fase 1a: coati di pohon','Separuh pertama populasi bergerak mendekati iguana. I acak bernilai 1 atau 2.','<code>x_new = x + r·(Iguana − I·x)</code>'],
+ ['Fase 1b: coati di tanah','Iguana jatuh ke posisi acak. Jika lebih baik dari coati: mendekat, selain itu: menjauh.','<code>Iguana_G = lb + r·(ub − lb)</code><code>x + r·(Iguana_G − I·x)  atau  x + r·(x − Iguana_G)</code>'],
+ ['Greedy selection','Posisi baru hanya diterima jika fitness-nya lebih baik dari posisi lama.','<code>X = X_new  jika  F_new &lt; F_old</code>'],
+ ['Fase 2: kabur dari predator','Batas lokal menyempit seiring iterasi t = 1..T, lalu terapkan greedy selection lagi.','<code>lb_local = lb/t ,  ub_local = ub/t</code><code>x_new = x + (1 − 2r)·(lb_local + r·(ub_local − lb_local))</code>']]},
+{t:'params',h:'Parameter COA',items:[
+ {n:'N',d:'Jumlah coati',min:5,max:60,v:16,st:1,lo:'Sedikit: cepat per iterasi, tetapi kurang beragam.',hi:'Banyak: lebih beragam dan stabil, evaluasi fitness lebih banyak.'},
+ {n:'T',d:'Iterasi maksimum',min:10,max:500,v:100,st:10,lo:'Sedikit: waktu konvergen kurang, hasil kasar.',hi:'Banyak: hasil lebih akurat, waktu lebih lama.'},
+ {n:'r',d:'Angka acak [0,1]',lo:'Bukan parameter yang diatur; dibangkitkan acak di tiap langkah.'},
+ {n:'I',d:'Faktor acak 1 atau 2',lo:'Bukan parameter yang diatur; menentukan seberapa kuat coati ditarik ke iguana.'},
+ {n:'lb, ub',d:'Batas variabel',lo:'Ditentukan oleh masalah (mis. indeks VM 0 s.d. jumlah VM − 1).'}],
+ note:'COA disebut hampir bebas parameter: tidak ada MR, SMP, SRD, dll seperti CSO. Hati-hati: sebagian survei menulis rumus COA dengan β, α, γ; itu bukan versi asli.'},
+{t:'pc',h:'Kelebihan &amp; Kekurangan COA',...PC_COA},
+{t:'app',h:'Penerapan COA di Cloud Computing',demo:'Demo mini: 8 task dijadwalkan ke 3 VM. Satu coati = satu vektor indeks VM.',list:[
+ '<b>COTSA</b> (2025): load-balanced task scheduling; makespan ≈ −9% dan execution cost hingga −40% dibanding GWO, SCSO, dll (klaim penulis)',
+ 'Menurunkan <b>total cost</b> dan <b>VM failure rate</b>',
+ '<b>Hybrid COA-OOA + fuzzy logic</b> untuk fault tolerance',
+ 'Di luar cloud: path planning UAV 3D',
+ '<b>Encoding</b> sama dengan CSO: posisi coati = vektor indeks VM; fitness = makespan / cost / energy']},
+
+/* ---------- Perbandingan ---------- */
+{t:'table',h:'Perbandingan CSO vs COA',head:['Aspek','CSO','COA'],rows:[
+ ['Tahun','2006','2023'],
+ ['Inspirasi','Kucing: mengamati &amp; mengejar','Coati: berburu iguana &amp; kabur dari predator'],
+ ['Struktur','2 mode, dibagi <b>per individu</b> via MR, dibagi ulang tiap iterasi','2 fase, dijalankan <b>berurutan untuk semua individu</b>'],
+ ['Exploration','Seeking mode: salinan + mutasi','Fase 1: mengejar iguana / posisi acak'],
+ ['Exploitation','Tracing mode: mengejar best cat (mirip PSO)','Fase 2: langkah mengecil (lb/t, ub/t)'],
+ ['Parameter','Banyak: MR, SMP, SRD, CDC, SPC, c1, v_max','Hampir nol: hanya N dan T'],
+ ['Seleksi posisi baru','Roulette wheel (seeking), langsung update (tracing)','Greedy selection'],
+ ['Evaluasi fitness / iterasi','Lebih banyak (SMP salinan per kucing seeking)','Sekitar 2N'],
+ ['Kelemahan umum','Premature convergence, tuning sulit','Exploration/exploitation terbatas di masalah sulit'],
+ ['Kematangan','Banyak varian &amp; aplikasi','Baru; validasi independen berkembang']]},
+{t:'table',h:'Perbandingan dengan Metaheuristik Populer',head:['Algoritma','Ide utama','Parameter','Kekuatan','Kelemahan'],rows:[
+ ['GA','Seleksi, crossover, mutasi','Banyak','Global search bagus, sederhana','Memori besar, local search lemah'],
+ ['PSO','Partikel mengikuti pbest &amp; gbest','Sedang (w, c1, c2)','Sederhana, cepat konvergen','Mudah terjebak local optimum'],
+ ['ACO','Jejak feromon','Banyak','Cocok masalah graf/kombinatorial','Lambat di ruang kontinu'],
+ ['DE','Mutasi selisih vektor','Sedikit (F, CR)','Kuat untuk kontinu','Sensitif terhadap F dan CR'],
+ ['GWO','Hierarki alpha-beta-delta','Sangat sedikit','Sederhana, cukup seimbang','Bisa kurang beragam'],
+ ['WOA','Spiral &amp; pengepungan paus','Sedikit','Struktur sederhana','Akurasi rendah, mudah local optimum'],
+ ['CSO','Seeking + tracing','Banyak','Mode exploration/exploitation eksplisit','Premature convergence'],
+ ['COA','Berburu iguana + kabur predator','Hampir nol','Sederhana, minim tuning','Perlu validasi independen']],
+ note:'<b>No Free Lunch theorem</b>: tidak ada satu algoritma yang terbaik untuk semua masalah; performa bergantung pada masalah dan setting.'},
+{t:'refs',h:'Sumber Referensi',list:[
+ 'Chu, S.-C., Tsai, P.-W., Pan, J.-S. (2006). Cat Swarm Optimization. PRICAI 2006, LNCS 4099.',
+ 'Dehghani, M., Montazeri, Z., Trojovská, E., Trojovský, P. (2023). Coati Optimization Algorithm. Knowledge-Based Systems 259:110011.',
+ 'Mangalampalli, S., Swain, S.K., Mangalampalli, V.K. (2021). Multi Objective Task Scheduling in Cloud Computing Using CSO. Arabian J. Sci. Eng.',
+ 'Mangalampalli, S., Swain, S.K., Chakrabarti, T. (2023). Prioritized Task-Scheduling Algorithm in Cloud Computing Using CSO. Sensors 23(13):6155.',
+ 'Bilgaiyan, S., Sagnika, S., Das, M. (2014). Workflow Scheduling in Cloud Computing Environment Using CSO. IEEE.',
+ 'Gündüz, A., Senan, S., Gürkaş Aydın, G.Z. Hybrid DECSO for multi-objective task scheduling in cloud.',
+ 'COTSA: A Load-Balanced Task Scheduling Algorithm using Coati Optimization (2025). AUT J. Modeling and Simulation 57(1).',
+ 'Ahmed, A., Rashid, T., Saeed, S. (2021). Dynamic Cat Swarm Optimization. Neural Computing and Applications.',
+ 'Cat Swarm Optimization Algorithm: A Survey and Performance Evaluation. arXiv:2001.11822.']},
+{t:'end',h:'Terima Kasih',sub:'Ada pertanyaan?'}];
+
+/* ============ MESIN SLIDE (tidak perlu diubah) ============ */
+const $=(s,e=document)=>e.querySelector(s),rnd=Math.random;
+const R={
+ title:s=>`<div class=ctr><div class=emo>🐱 🦎 🦝</div><h1>${s.h}</h1><p class=sub>${s.sub}<br>${s.course}</p><div class=mem>${MEMBERS.map(m=>`<span>${m}</span>`).join('')}</div></div>`,
+ end:s=>`<div class=ctr><div class=emo>🌿</div><h1>${s.h}</h1><p class=sub>${s.sub}</p></div>`,
+ text:s=>`<h2>${s.h}</h2><div class=g style="grid-template-columns:1fr 1fr">${s.cols.map(c=>`<div class=card><h3>${c[0]}</h3><p>${c[1]}</p></div>`).join('')}</div>`,
+ sim:s=>`<h2>${s.h}</h2><div class=g style="grid-template-columns:1fr 340px"><div style="display:flex;flex-direction:column;gap:10px;min-height:0"><canvas width=784 height=318></canvas><div class=g style="grid-template-columns:1fr 1fr">${s.cards.map(c=>`<div class="card sm"><h3>${c[0]}</h3>${c[1]}</div>`).join('')}</div></div><div class="card pn">${ctlHTML(s.algo)}<div class=bt><button data-act=play>⏸ Jeda</button><button data-act=step>Langkah</button><button data-act=reset>Reset</button></div><div class=hud></div><p style="font-size:13px;margin-top:6px">Hijau tua = area bagus (fitness rendah). ⭐ = solusi terbaik.</p></div></div>`,
+ flow:s=>`<h2>${s.h}</h2><div class=g style="grid-template-columns:1fr 1.2fr"><div style="display:flex;flex-direction:column;gap:8px"><ul class=fl>${s.steps.map(x=>`<li>${x[0]}</li>`).join('')}</ul><button class=play>▶ Putar alur otomatis</button></div><div class="card fd"></div></div>`,
+ params:s=>`<h2>${s.h}</h2><div class=g style="grid-template-columns:repeat(3,1fr);grid-auto-rows:min-content">${s.items.map((it,i)=>`<div class=card><h3>${it.n} <small>${it.d}</small></h3>${it.min==null?`<p>${it.lo}</p>`:`<input type=range data-i=${i} min=${it.min} max=${it.max} step=${it.st} value=${it.v} style="width:70%;accent-color:#5b8c3a"> <b class=val></b><p class=ef style="margin-top:6px;font-size:17px"></p>`}</div>`).join('')}</div><p style="font-size:16px">${s.note}</p>`,
+ pc:s=>`<h2>${s.h}</h2><div class=g style="grid-template-columns:1fr 1fr"><div class="card pro"><h3>✔ Kelebihan</h3><ul class=l>${s.pro.map(x=>`<li>🌱 ${x}</li>`).join('')}</ul></div><div class="card con"><h3>⚠ Kekurangan</h3><ul class=l>${s.con.map(x=>`<li>🍂 ${x}</li>`).join('')}</ul></div></div>`,
+ app:s=>`<h2>${s.h}</h2><div class=g style="grid-template-columns:1.1fr 1fr"><div class=card><ul class=l>${s.list.map(x=>`<li>🌿 ${x}</li>`).join('')}</ul></div><div class=card><h3>Demo scheduling</h3><p style="font-size:16px">${s.demo}</p><div class=gt></div><div class=bt style="display:flex;gap:8px"><button data-a=r>🎲 Acak</button><button data-a=o>✨ Cari lebih baik</button></div></div></div>`,
+ table:s=>`<h2>${s.h}</h2><table><tr>${s.head.map(x=>`<th>${x}</th>`).join('')}</tr>${s.rows.map(r=>`<tr>${r.map(x=>`<td>${x}</td>`).join('')}</tr>`).join('')}</table>${s.note?`<p style="font-size:17px">${s.note}</p>`:''}`,
+ refs:s=>`<h2>${s.h}</h2><div class=card style="flex:1"><ol class=ref>${s.list.map(x=>`<li>${x}</li>`).join('')}</ol></div>`};
+
+const CTL={cso:[['r','N','Jumlah kucing (N)',4,30,1],['r','MR','MR (rasio tracing)',0,1,.05],['s','SMP','SMP (jumlah salinan)',2,12],['s','CDC','CDC (dimensi diubah)',1,2],['r','SRD','SRD (rentang mutasi)',.05,.6,.05],['r','c1','c1 (akselerasi)',.5,3,.1],['w','SPC','SPC (posisi sendiri ikut)'],['d','spd','Kecepatan']],
+ coa:[['r','N','Jumlah coati (N)',6,40,2],['d','spd','Kecepatan']]};
+const DEF={cso:{N:12,MR:.2,SMP:5,SRD:.2,CDC:1,c1:2,SPC:1,spd:800},coa:{N:16,spd:800}};
+function ctlHTML(a){const P=DEF[a];return CTL[a].map(([t,k,l,lo,hi,st])=>{const v=P[k];
+ if(t=='r')return`<label>${l}: <b data-v=${k}>${v}</b><input type=range data-k=${k} min=${lo} max=${hi} step=${st} value=${v}></label>`;
+ if(t=='s')return`<label>${l}: <button data-k=${k} data-d=-1 data-a=${lo} data-b=${hi}>−</button><b data-v=${k}>${v}</b><button data-k=${k} data-d=1 data-a=${lo} data-b=${hi}>+</button></label>`;
+ if(t=='w')return`<label>${l} <input type=checkbox data-k=${k} ${v?'checked':''}></label>`;
+ return`<label>${l}: <select data-k=${k}>${[['Lambat',1400],['Normal',800],['Cepat',350]].map(([n,m])=>`<option value=${m} ${m==v?'selected':''}>${n}</option>`).join('')}</select></label>`}).join('')}
+
+/* ---- Simulasi animasi: peta hijau = fitness bagus; algoritma bergerak per langkah ---- */
+function Sim(root,algo){
+ const cv=$('canvas',root),g=cv.getContext('2d'),W=cv.width,H=cv.height,P={...DEF[algo]},hud=$('.hud',root);
+ const pk=[[.74,.3,1,.13],[.22,.68,.65,.1],[.4,.18,.45,.08],[.55,.8,.5,.09]];
+ const f=(x,y)=>{let v=0;for(const[a,b,h,s]of pk)v=Math.max(v,h*Math.exp(-((x-a)**2+(y-b)**2)/(2*s*s)));return 1-v};
+ const bg=document.createElement('canvas');bg.width=W;bg.height=H;const bc=bg.getContext('2d');
+ for(let i=0;i<W;i+=8)for(let j=0;j<H;j+=8){const q=1-f(i/W,j/H);bc.fillStyle=`rgb(${243-q*150|0},${231-q*91|0},${196-q*138|0})`;bc.fillRect(i,j,8,8)}
+ const cl=v=>Math.min(1,Math.max(0,v));let C,best,t,lp=0,ig,playing=true,active=false,last=0;
+ function reset(){C=[...Array(P.N)].map(()=>{const x=rnd(),y=rnd();return{x,y,dx:x,dy:y,vx:0,vy:0,m:0,gh:[]}});
+  const b=C.reduce((a,c)=>f(c.x,c.y)<f(a.x,a.y)?c:a);best={x:b.x,y:b.y};t=algo=='cso'?0:1;lp=0;ig=null;info()}
+ const upBest=()=>C.forEach(c=>{if(f(c.x,c.y)<f(best.x,best.y))best={x:c.x,y:c.y}});
+ function cso(){const nt=Math.round(P.N*P.MR);[...C].sort(()=>rnd()-.5).forEach((c,i)=>c.m=i<nt?1:0);
+  C.forEach(c=>{c.gh=[];
+   if(c.m){const q=v=>Math.max(-.1,Math.min(.1,v));c.vx=q(c.vx+P.c1*rnd()*(best.x-c.x));c.vy=q(c.vy+P.c1*rnd()*(best.y-c.y));c.x=cl(c.x+c.vx);c.y=cl(c.y+c.vy)}
+   else{const K=[];if(P.SPC)K.push({x:c.x,y:c.y});
+    while(K.length<P.SMP){let a=c.x,b=c.y;const d=P.CDC>1?3:rnd()<.5?1:2,m=()=>1+(rnd()<.5?-1:1)*rnd()*P.SRD;if(d&1)a=cl(a*m());if(d&2)b=cl(b*m());K.push({x:a,y:b})}
+    const F=K.map(k=>f(k.x,k.y)),mx=Math.max(...F),mn=Math.min(...F),w=F.map(v=>mx==mn?1:(mx-v)/(mx-mn)+.02);
+    let r=rnd()*w.reduce((a,b)=>a+b),i=0;for(;i<w.length-1&&(r-=w[i])>0;i++);
+    c.gh=K;c.x=K[i].x;c.y=K[i].y}});upBest();t++}
+ function coa(){C.forEach(c=>c.tg=null);
+  if(lp!=1){const h=C.length>>1,G={x:rnd(),y:rnd()};ig={...best,G};
+   C.forEach((c,i)=>{const I=1+(rnd()<.5|0);let nx,ny;
+    if(i<h){nx=c.x+rnd()*(best.x-I*c.x);ny=c.y+rnd()*(best.y-I*c.y);c.tg=best}
+    else{c.tg=G;if(f(G.x,G.y)<f(c.x,c.y)){nx=c.x+rnd()*(G.x-I*c.x);ny=c.y+rnd()*(G.y-I*c.y)}else{nx=c.x+rnd()*(c.x-G.x);ny=c.y+rnd()*(c.y-G.y)}}
+    nx=cl(nx);ny=cl(ny);if(f(nx,ny)<f(c.x,c.y)){c.x=nx;c.y=ny}});lp=1}
+  else{C.forEach(c=>{const nx=cl(c.x+(1-2*rnd())*rnd()/t),ny=cl(c.y+(1-2*rnd())*rnd()/t);if(f(nx,ny)<f(c.x,c.y)){c.x=nx;c.y=ny}});lp=2;t++}
+  upBest()}
+ function info(){const fb=f(best.x,best.y).toFixed(3);hud.innerHTML=algo=='cso'?`Iterasi ${t} · seeking ${C.filter(c=>!c.m).length} · tracing ${C.filter(c=>c.m).length}<br>Best fitness: ${fb}`:`Iterasi ${t} · langkah terakhir: ${lp==1?'Fase 1 (exploration)':lp==2?'Fase 2 (exploitation)':'-'}<br>Batas lokal ±1/t = ${(1/t).toFixed(2)} · Best fitness: ${fb}`}
+ function step(){algo=='cso'?cso():coa();info()}
+ function draw(ts){if(!active)return;requestAnimationFrame(draw);if(playing&&ts-last>P.spd){step();last=ts}
+  g.drawImage(bg,0,0);g.textAlign='center';g.textBaseline='middle';
+  C.forEach(c=>{c.dx+=(c.x-c.dx)*.15;c.dy+=(c.y-c.dy)*.15;
+   if(algo=='cso'&&!c.m)c.gh.forEach(k=>{g.fillStyle='#4aa3d8';g.beginPath();g.arc(k.x*W,k.y*H,3,0,7);g.fill()});
+   if(algo=='coa'&&lp==1&&c.tg){g.strokeStyle='rgba(217,130,43,.55)';g.setLineDash([5,5]);g.beginPath();g.moveTo(c.dx*W,c.dy*H);g.lineTo(c.tg.x*W,c.tg.y*H);g.stroke();g.setLineDash([])}});
+  if(algo=='coa'&&ig&&lp==1){g.font='26px serif';g.globalAlpha=.7;g.fillText('🦎',ig.G.x*W,ig.G.y*H);g.globalAlpha=1}
+  C.forEach(c=>{g.lineWidth=3;g.strokeStyle=algo=='cso'?(c.m?'#d9822b':'#4aa3d8'):(lp==2?'#6b4a2f':'#d9822b');g.beginPath();g.arc(c.dx*W,c.dy*H,15,0,7);g.stroke();g.font='20px serif';g.fillText(algo=='cso'?'🐱':'🦝',c.dx*W,c.dy*H+1)});
+  g.font='26px serif';g.fillText(algo=='coa'?'🦎':'⭐',best.x*W,best.y*H-22);
+  g.font='bold 15px Nunito,sans-serif';g.textAlign='left';g.fillStyle='#3e2c1c';
+  g.fillText(algo=='cso'?'Cincin biru = seeking mode · cincin oranye = tracing mode':lp==1?'Fase 1: exploration (garis = arah menuju iguana)':lp==2?'Fase 2: exploitation (langkah kecil di sekitar posisi)':'Tekan Langkah atau biarkan berjalan',10,H-14)}
+ const set=(k,v)=>{P[k]=v;const b=$(`[data-v=${k}]`,root);if(b)b.textContent=v;if(k=='N')reset()};
+ root.oninput=e=>{const k=e.target.dataset.k;if(k)set(k,e.target.type=='checkbox'?+e.target.checked:+e.target.value)};
+ root.onclick=e=>{const d=e.target.dataset;if(d.d)set(d.k,Math.min(+d.b,Math.max(+d.a,P[d.k]+ +d.d)));
+  if(d.act=='play'){playing=!playing;e.target.textContent=playing?'⏸ Jeda':'▶ Putar'}if(d.act=='step'){step()}if(d.act=='reset')reset()};
+ reset();return{show(on){if(on&&!active){active=true;requestAnimationFrame(draw)}active=on}}}
+
+/* ---- Alur matematis: klik langkah atau putar otomatis ---- */
+function Flow(d,s){const li=[...d.querySelectorAll('.fl li')],box=$('.fd',d);let k=0,tm;
+ const sel=i=>{k=i;li.forEach((e,j)=>e.classList.toggle('on',j==i));const x=s.steps[i];box.innerHTML=`<h3>${i+1}. ${x[0]}</h3><p>${x[1]}</p>${x[2]}`};
+ li.forEach((e,i)=>e.onclick=()=>{clearInterval(tm);sel(i)});
+ $('.play',d).onclick=()=>{clearInterval(tm);sel(0);tm=setInterval(()=>k<li.length-1?sel(k+1):clearInterval(tm),2200)};sel(0)}
+
+/* ---- Parameter: geser slider untuk melihat efeknya ---- */
+function Params(d,s){const upd=el=>{const it=s.items[el.dataset.i],v=+el.value,c=el.closest('.card');
+  $('.val',c).textContent=it.sw?['false','true'][v]:v+(it.n=='SRD'||it.n=='CDC'?'%':'');$('.ef',c).innerHTML=v>(it.min+it.max)/2?it.hi:it.lo};
+ d.querySelectorAll('input[type=range]').forEach(el=>{upd(el);el.oninput=()=>upd(el)})}
+
+/* ---- Demo scheduling: 8 task ke 3 VM, makespan = waktu VM terlama ---- */
+function Sched(d){const L=[4,7,3,9,5,2,6,8],S=[1,1.5,2],col=['#5b8c3a','#d9822b','#4aa3d8'];let a,tm;
+ const ms=a=>{const t=[0,0,0];a.forEach((v,i)=>t[v]+=L[i]/S[v]);return Math.max(...t)};
+ const draw=()=>{$('.gt',d).innerHTML=S.map((s,v)=>`<div class=row><b>VM${v}</b><div class=tr>${a.map((x,i)=>x==v?`<i style="width:${L[i]/s/32*100}%;background:${col[v]}">T${i+1}</i>`:'').join('')}</div></div>`).join('')+`<p style="font-size:16px">Solusi: <code>[${a}]</code><br>Makespan = <b>${ms(a).toFixed(1)}</b></p>`};
+ const rand=()=>{clearInterval(tm);a=L.map(()=>0|rnd()*3);draw()};
+ $('[data-a=r]',d).onclick=rand;
+ $('[data-a=o]',d).onclick=()=>{clearInterval(tm);let n=0;tm=setInterval(()=>{const b=[...a];b[0|rnd()*8]=0|rnd()*3;if(ms(b)<ms(a))a=b;draw();if(++n>60)clearInterval(tm)},70)};rand()}
+
+/* ---- Navigasi ---- */
+const st=$('#stage'),sims=[],secs=[];let cur=0;
+SLIDES.forEach((s,i)=>{const d=document.createElement('section');d.className='slide';d.innerHTML=R[s.t](s);st.insertBefore(d,$('#bar'));secs.push(d);
+ if(s.t=='sim')sims[i]=Sim(d,s.algo);if(s.t=='flow')Flow(d,s);if(s.t=='params')Params(d,s);if(s.t=='app')Sched(d)});
+function go(n){cur=Math.max(0,Math.min(SLIDES.length-1,n));secs.forEach((d,i)=>{d.classList.toggle('on',i==cur);if(sims[i])sims[i].show(i==cur)});
+ $('#ct').textContent=`${cur+1} / ${SLIDES.length}`;$('#pg').style.width=(cur+1)/SLIDES.length*100+'%';location.hash=cur+1}
+$('#pv').onclick=()=>go(cur-1);$('#nx').onclick=()=>go(cur+1);
+addEventListener('keydown',e=>{if(/INPUT|SELECT/.test(e.target.tagName))return;
+ if(['ArrowRight','PageDown',' '].includes(e.key))go(cur+1);if(['ArrowLeft','PageUp'].includes(e.key))go(cur-1);if(e.key=='Home')go(0);if(e.key=='End')go(SLIDES.length-1)});
+function fit(){const s=Math.min(innerWidth/1280,innerHeight/720);st.style.transform=`translate(${(innerWidth-1280*s)/2}px,${(innerHeight-720*s)/2}px) scale(${s})`}
+addEventListener('resize',fit);fit();go((parseInt(location.hash.slice(1))||1)-1);
+</script></body></html>
