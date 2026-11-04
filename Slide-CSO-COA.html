@@ -44,7 +44,7 @@ table{width:100%;border-collapse:collapse;font-size:16px}th{background:var(--lea
 /* ============ BAGIAN EDIT (isi slide ada di sini, tidak perlu paham JS) ============
    Tiap slide = satu blok { t:'jenis', h:'judul', ... }. Salin/hapus blok untuk tambah/kurangi slide.
    Jenis: title, text, sim, flow, params, pc, app, table, refs, end. Boleh pakai tag HTML (<b>, <code>, <br>).  */
-const MEMBERS=['Nama Anggota 1','Nama Anggota 2','Nama Anggota 3','Nama Anggota 4','Nama Anggota 5'];
+const MEMBERS=['Imam Mahmud Dalil Fauzan','Christiano Ronaldo Silalahi','Ahmad Yazid Arifuddin','Adiwidya Budi Pratama','Oscaryavat Viryavan'];
 
 const PC_CSO={pro:['Dua mode memberi mekanisme exploration &amp; exploitation yang eksplisit','Konsep mudah dipahami dan dimodifikasi','Banyak varian: binary, parallel, multi-objective, dynamic','Dipakai luas: clustering, TSP, task scheduling'],
  con:['Rentan premature convergence → terjebak di local optimum','Parameter banyak (MR, SMP, SRD, CDC, SPC, c1) dan sensitif','Seeking mode mengevaluasi SMP salinan → biaya fitness tinggi','CSO murni bisa lambat konvergen; versi asli kontinu, perlu encoding untuk scheduling']};
@@ -79,7 +79,7 @@ const SLIDES=[
  {n:'c1',d:'Koefisien akselerasi tracing',min:.5,max:3,v:2,st:.1,lo:'Kecil: kucing mengejar pelan.',hi:'Besar: mengejar agresif, bisa melewati target.'}],
  note:'Selain itu ada N (jumlah kucing), T (iterasi maksimum), dan v_max (batas velocity). Nilai tipikal berbeda tiap paper → perlu tuning.'},
 {t:'pc',h:'Kelebihan &amp; Kekurangan CSO',...PC_CSO},
-{t:'app',h:'Penerapan CSO di Cloud Computing',demo:'Demo mini: 8 task dijadwalkan ke 3 VM (kecepatan 1 / 1.5 / 2). Satu kucing = satu vektor indeks VM.',list:[
+{t:'app',h:'Penerapan CSO di Cloud Computing',demo:'8 task dijadwalkan ke 3 VM (kecepatan 1 / 1.5 / 2). Satu kucing = satu vektor indeks VM.',list:[
  '<b>Mangalampalli dkk. (2021)</b>: multi-objective scheduling dengan prioritas task &amp; VM; makespan, energy, dan power cost lebih baik dari PSO &amp; Cuckoo Search (workload HPC2N &amp; NASA)',
  '<b>Prioritized scheduling (2023)</b>: menekan makespan, energy consumption, dan SLA violation',
  '<b>Workflow scheduling</b>: meminimalkan total cost, iterasi lebih sedikit dari PSO',
@@ -110,7 +110,7 @@ const SLIDES=[
  {n:'lb, ub',d:'Batas variabel',lo:'Ditentukan oleh masalah (mis. indeks VM 0 s.d. jumlah VM − 1).'}],
  note:'COA disebut hampir bebas parameter: tidak ada MR, SMP, SRD, dll seperti CSO. Hati-hati: sebagian survei menulis rumus COA dengan β, α, γ; itu bukan versi asli.'},
 {t:'pc',h:'Kelebihan &amp; Kekurangan COA',...PC_COA},
-{t:'app',h:'Penerapan COA di Cloud Computing',demo:'Demo mini: 8 task dijadwalkan ke 3 VM. Satu coati = satu vektor indeks VM.',list:[
+{t:'app',h:'Penerapan COA di Cloud Computing',demo:'8 task dijadwalkan ke 3 VM. Satu coati = satu vektor indeks VM.',list:[
  '<b>COTSA</b> (2025): load-balanced task scheduling; makespan ≈ −9% dan execution cost hingga −40% dibanding GWO, SCSO, dll (klaim penulis)',
  'Menurunkan <b>total cost</b> dan <b>VM failure rate</b>',
  '<b>Hybrid COA-OOA + fuzzy logic</b> untuk fault tolerance',
@@ -149,7 +149,7 @@ const SLIDES=[
  'COTSA: A Load-Balanced Task Scheduling Algorithm using Coati Optimization (2025). AUT J. Modeling and Simulation 57(1).',
  'Ahmed, A., Rashid, T., Saeed, S. (2021). Dynamic Cat Swarm Optimization. Neural Computing and Applications.',
  'Cat Swarm Optimization Algorithm: A Survey and Performance Evaluation. arXiv:2001.11822.']},
-{t:'end',h:'Terima Kasih',sub:'Ada pertanyaan?'}];
+{t:'end',h:'Terima Kasih',sub:''}];
 
 /* ============ MESIN SLIDE (tidak perlu diubah) ============ */
 const $=(s,e=document)=>e.querySelector(s),rnd=Math.random;
