@@ -5,182 +5,973 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Meta3D Arena · Cat Swarm vs Coati Optimization</title>
 <meta name="description" content="Simulasi 3D interaktif algoritma metaheuristik Cat Swarm Optimization (CSO) dan Coati Optimization Algorithm (COA), lengkap dengan game berburu harta karun.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0b1030;--l1:#121843;--l2:#182050;--l3:#1e2760;--accent:#4de1ff;--hi:inset 0 1px 0 rgba(255,255,255,.06);--line:rgba(255,255,255,.12);--txt:#eaf0ff;--mut:#97a3d3;--pink:#ff5c9a;--cyan:#4de1ff;--gold:#ffd166}
+:root{
+  --bg:#080c16;
+  --l1:#0e1526;
+  --l2:#141d33;
+  --l3:#1b2642;
+  --accent:#38bdf8;
+  --hi:inset 0 1px 0 rgba(255,255,255,.07);
+  --line:rgba(255,255,255,.09);
+  --line-strong:rgba(255,255,255,.16);
+  --txt:#f1f5f9;
+  --mut:#94a3b8;
+  --mut-dark:#64748b;
+  --pink:#f43f5e;
+  --cyan:#0ea5e9;
+  --gold:#f59e0b;
+  --emerald:#10b981;
+  --radius-sm:8px;
+  --radius-md:12px;
+  --radius-lg:16px;
+  --shadow-card:0 10px 30px -10px rgba(0,0,0,0.5),0 0 0 1px var(--line);
+}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+html,body{
+  margin:0;
+  height:100%;
+  overflow:hidden;
+  background:var(--bg);
+  color:var(--txt);
+  font-family:'Lexend',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-size:14px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
 #app{position:fixed;inset:0}
 #app canvas{display:block;touch-action:none;outline:none}
 button{font:inherit;color:inherit;cursor:pointer}
-.glass{background:var(--l1);border:1px solid var(--line);border-radius:10px;box-shadow:var(--hi)}
+.glass{
+  background:rgba(14,21,38,0.88);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  border:1px solid var(--line);
+  border-radius:var(--radius-md);
+  box-shadow:var(--shadow-card),var(--hi);
+}
 [hidden]{display:none!important}
 
-#topbar{position:fixed;top:10px;left:10px;right:10px;height:46px;display:flex;align-items:center;gap:12px;padding:0 10px;z-index:6}
-.brand{display:flex;align-items:center;gap:8px;white-space:nowrap}
-.brand small{color:var(--mut)}
-.tabs{display:flex;gap:4px;margin:0 auto}
-.tabs button{background:transparent;border:1px solid transparent;border-radius:10px;padding:6px 12px}
-.tabs button.on{background:var(--l2);border-color:var(--line);border-bottom:2px solid var(--accent)}
-.ico{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.06)}
+/* Custom Scrollbars */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.14);border-radius:999px}
+::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.25)}
 
-#panel{position:fixed;top:66px;left:10px;width:310px;max-height:calc(100% - 78px);overflow:auto;padding:14px;z-index:4}
-#panel h3{margin:0 0 8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
-#panel label{display:block;margin:10px 0 0;color:var(--mut);font-size:13px}
-#panel label b{float:right;color:var(--txt);font-weight:600}
-#panelToggle{display:none;width:100%;background:none;border:0;padding:0 0 8px;text-align:left;color:var(--mut)}
-select{width:100%;margin-top:4px;padding:7px 8px;border-radius:9px;border:1px solid var(--line);background:rgba(8,12,36,.8);color:var(--txt);font:inherit}
-input[type=range]{width:100%;margin:4px 0 0;accent-color:var(--cyan)}
-.seg{display:flex;gap:4px;background:rgba(255,255,255,.05);padding:3px;border-radius:11px;border:1px solid var(--line)}
-.seg button{flex:1;background:transparent;border:0;border-radius:8px;padding:6px 4px;font-size:13px}
-.seg button.on{background:rgba(255,255,255,.14);font-weight:600}
-details{margin-top:12px;border-top:1px solid var(--line);padding-top:8px}
-summary{cursor:pointer;color:var(--mut);font-size:13px}
-.chk{display:grid;grid-template-columns:1fr 1fr;gap:4px 8px;margin-top:12px}
-.chk label{margin:0;display:flex;align-items:center;gap:6px;color:var(--txt);font-size:13px}
-.chk input{accent-color:var(--cyan)}
-.btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
-.btns button,.primary{border:1px solid var(--line);background:rgba(255,255,255,.08);border-radius:10px;padding:8px 10px}
-.btns button:hover{background:rgba(255,255,255,.15)}.primary:hover,.btns .primary:hover{background:#86eaff}
-.primary,.btns .primary{background:var(--accent);color:#06102a;border:0;font-weight:700;padding:10px 16px;width:100%}
+/* Topbar */
+#topbar{
+  position:fixed;
+  top:10px;
+  left:10px;
+  right:10px;
+  height:48px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:0 12px;
+  z-index:6;
+}
+.brand{display:flex;align-items:center;gap:10px;white-space:nowrap}
+.brand-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  background:rgba(255,255,255,0.06);
+  border:1px solid var(--line);
+  padding:3px 7px;
+  border-radius:8px;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:0.04em;
+}
+.badge-cat{color:var(--pink)}
+.badge-vs{color:var(--mut-dark);font-size:9px;text-transform:uppercase}
+.badge-coati{color:var(--cyan)}
+.brand b{font-weight:700;font-size:14.5px;letter-spacing:-0.01em;color:#fff}
+.brand small{color:var(--mut);font-size:12px;font-weight:400;margin-left:2px}
+
+.tabs{
+  display:flex;
+  gap:4px;
+  margin:0 auto;
+  background:rgba(0,0,0,0.3);
+  padding:3px;
+  border-radius:10px;
+  border:1px solid var(--line);
+}
+.tabs button{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  background:transparent;
+  border:0;
+  border-radius:8px;
+  padding:6px 14px;
+  font-size:13px;
+  font-weight:500;
+  color:var(--mut);
+  transition:all 0.18s ease;
+}
+.tabs button:hover{color:#fff;background:rgba(255,255,255,0.05)}
+.tabs button.on{
+  background:var(--l2);
+  color:#fff;
+  font-weight:600;
+  box-shadow:0 1px 3px rgba(0,0,0,0.3);
+}
+.ico{
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.05);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:13px;
+  font-weight:600;
+  color:var(--mut);
+  transition:all 0.15s ease;
+}
+.ico:hover{
+  background:rgba(255,255,255,.12);
+  color:#fff;
+  border-color:var(--line-strong);
+}
+
+/* Panel */
+#panel{
+  position:fixed;
+  top:68px;
+  left:10px;
+  width:320px;
+  max-height:calc(100% - 80px);
+  overflow:auto;
+  padding:16px;
+  z-index:4;
+}
+#panel h3{
+  margin:0 0 10px;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--mut);
+}
+#panel label{
+  display:block;
+  margin:12px 0 0;
+  color:var(--mut);
+  font-size:12.5px;
+  font-weight:500;
+}
+#panel label b{
+  float:right;
+  color:var(--txt);
+  font-weight:600;
+  font-variant-numeric:tabular-nums;
+}
+#panelToggle{
+  display:none;
+  width:100%;
+  background:none;
+  border:0;
+  padding:0 0 10px;
+  text-align:left;
+  color:var(--mut);
+  font-weight:600;
+  font-size:13px;
+}
+select{
+  width:100%;
+  margin-top:5px;
+  padding:8px 30px 8px 10px;
+  border-radius:var(--radius-sm);
+  border:1px solid var(--line);
+  background-color:rgba(8,12,24,0.9);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 10px center;
+  color:var(--txt);
+  font:inherit;
+  font-size:13px;
+  outline:none;
+  transition:border-color 0.15s ease;
+  appearance:none;
+  -webkit-appearance:none;
+}
+select:focus{border-color:var(--accent)}
+input[type=range]{
+  -webkit-appearance:none;
+  appearance:none;
+  width:100%;
+  height:6px;
+  margin:8px 0 2px;
+  border-radius:999px;
+  background:rgba(255,255,255,0.1);
+  outline:none;
+  cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  appearance:none;
+  width:15px;
+  height:15px;
+  border-radius:50%;
+  background:#f8fafc;
+  border:2px solid var(--accent);
+  box-shadow:0 2px 5px rgba(0,0,0,0.4);
+  transition:transform 0.12s ease;
+}
+input[type=range]::-webkit-slider-thumb:hover{
+  transform:scale(1.18);
+  background:#38bdf8;
+}
+input[type=range]::-moz-range-thumb{
+  width:15px;
+  height:15px;
+  border-radius:50%;
+  background:#f8fafc;
+  border:2px solid var(--accent);
+  box-shadow:0 2px 5px rgba(0,0,0,0.4);
+}
+
+.seg{
+  display:flex;
+  gap:3px;
+  background:rgba(0,0,0,0.35);
+  padding:3px;
+  border-radius:9px;
+  border:1px solid var(--line);
+}
+.seg button{
+  flex:1;
+  background:transparent;
+  border:0;
+  border-radius:7px;
+  padding:6px 4px;
+  font-size:12.5px;
+  font-weight:500;
+  color:var(--mut);
+  transition:all 0.15s ease;
+}
+.seg button:hover{color:#fff}
+.seg button.on{
+  background:rgba(255,255,255,0.13);
+  color:#fff;
+  font-weight:600;
+  box-shadow:0 1px 3px rgba(0,0,0,0.3);
+}
+
+details{
+  margin-top:14px;
+  border-top:1px solid var(--line);
+  padding-top:10px;
+}
+summary{
+  cursor:pointer;
+  color:var(--mut);
+  font-size:12.5px;
+  font-weight:600;
+  user-select:none;
+}
+summary:hover{color:#fff}
+.chk{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:6px 10px;
+  margin-top:14px;
+}
+.chk label{
+  margin:0;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  color:var(--txt);
+  font-size:12.5px;
+  cursor:pointer;
+}
+.chk input{
+  accent-color:var(--accent);
+  cursor:pointer;
+}
+.btns{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-top:16px;
+}
+.btns button,.primary{
+  border:1px solid var(--line);
+  background:rgba(255,255,255,0.07);
+  border-radius:var(--radius-sm);
+  padding:8px 12px;
+  font-size:13px;
+  font-weight:500;
+  color:var(--txt);
+  transition:all 0.15s ease;
+}
+.btns button:hover{
+  background:rgba(255,255,255,0.14);
+  border-color:var(--line-strong);
+}
+.primary,.btns .primary{
+  background:#0284c7;
+  color:#fff;
+  border:1px solid rgba(255,255,255,0.15);
+  font-weight:600;
+  padding:9px 16px;
+  width:100%;
+}
+.primary:hover,.btns .primary:hover{background:#0369a1}
 .btns .wide{grid-column:1/-1}
-.hint{margin:12px 0 0;font-size:12.5px;color:var(--mut)}
-.keys{margin:8px 0;padding-left:18px;color:var(--mut);font-size:13px}
+.hint{
+  margin:12px 0 0;
+  font-size:12px;
+  line-height:1.5;
+  color:var(--mut);
+}
+.keys{
+  margin:8px 0;
+  padding-left:18px;
+  color:var(--mut);
+  font-size:12.5px;
+}
 .keys b{color:var(--txt)}
-kbd{background:rgba(255,255,255,.12);border-radius:5px;padding:0 5px;font-size:12px}
-#records{margin-top:10px;font-size:12.5px;color:var(--mut)}
+kbd{
+  background:rgba(255,255,255,0.1);
+  border:1px solid rgba(255,255,255,0.15);
+  border-radius:4px;
+  padding:1px 6px;
+  font-size:11px;
+  font-family:inherit;
+  font-weight:600;
+  color:#fff;
+}
+#records{
+  margin-top:12px;
+  font-size:12px;
+  color:var(--gold);
+  font-weight:500;
+}
 
-#stats{position:fixed;top:66px;right:10px;width:310px;padding:12px;z-index:3}
-.card{border-left:3px solid var(--c);padding:4px 0 4px 10px;margin-bottom:8px}
-.card .ct{display:flex;justify-content:space-between;font-weight:600}
-.card .ct span{color:var(--mut);font-weight:400;font-size:12px}
-.card .cv{font-size:22px;font-variant-numeric:tabular-nums;color:var(--c)}
-.card .cs{font-size:12px;color:var(--mut)}
-#chart{width:100%;height:120px;display:block;margin-top:4px}
-.legend{font-size:11.5px;color:var(--mut);margin-top:4px}
-.grad{height:8px;border-radius:5px;margin:6px 0 2px;background:linear-gradient(90deg,#ffd166,#5ad6a0,#2b73c8,#4a2f9a,#38195f)}
+/* Stats */
+#stats{
+  position:fixed;
+  top:68px;
+  right:10px;
+  width:320px;
+  padding:14px;
+  z-index:3;
+}
+.card{
+  border-left:3px solid var(--c);
+  background:rgba(255,255,255,0.03);
+  border-radius:0 var(--radius-sm) var(--radius-sm) 0;
+  padding:6px 10px;
+  margin-bottom:8px;
+}
+.card .ct{
+  display:flex;
+  justify-content:space-between;
+  font-weight:600;
+  font-size:13px;
+}
+.card .ct span{
+  color:var(--mut);
+  font-weight:400;
+  font-size:11.5px;
+}
+.card .cv{
+  font-size:20px;
+  font-weight:700;
+  font-variant-numeric:tabular-nums;
+  color:var(--c);
+  margin:2px 0;
+}
+.card .cs{
+  font-size:11.5px;
+  color:var(--mut);
+}
+#chart{
+  width:100%;
+  height:120px;
+  display:block;
+  margin-top:6px;
+  border-radius:6px;
+  background:rgba(0,0,0,0.25);
+}
+.legend{
+  font-size:11px;
+  color:var(--mut);
+  margin-top:5px;
+}
+.grad{
+  height:6px;
+  border-radius:999px;
+  margin:6px 0 2px;
+  background:linear-gradient(90deg,#f59e0b,#10b981,#0ea5e9,#6366f1,#312e81);
+}
 
-#gTimer{position:fixed;top:66px;left:50%;transform:translateX(-50%);padding:6px 20px;font-size:28px;font-weight:800;font-variant-numeric:tabular-nums;z-index:4}
-#gTimer.low{color:#ff6b6b}
-#gBoard{position:fixed;top:66px;left:10px;width:240px;padding:10px 12px;z-index:4}
-#gBoard .r{display:flex;justify-content:space-between;gap:8px;padding:3px 0;font-size:13px}
-#gBoard .r b{font-variant-numeric:tabular-nums}
-#gBottom{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);width:min(440px,calc(100% - 20px));padding:10px 14px;z-index:4}
-.thermo{height:10px;border-radius:6px;background:rgba(255,255,255,.1);overflow:hidden;margin:6px 0}
-.thermo i{display:block;height:100%;width:0;background:linear-gradient(90deg,#4aa8ff,#ffd166,#ff5c3a);transition:width .12s}
-#gBottom .line{display:flex;justify-content:space-between;align-items:center;gap:10px}
-#btnSonar{border:1px solid var(--line);background:rgba(77,225,255,.18);border-radius:10px;padding:8px 12px;white-space:nowrap}
-#btnSonar:disabled{opacity:.5}
-#count{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;font-size:min(30vw,200px);font-weight:900;color:#fff;pointer-events:none;z-index:7}
-#overlay{background:var(--l3);box-shadow:var(--hi),0 0 0 100vmax rgba(3,6,20,.55);position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(440px,calc(100% - 24px));padding:22px;text-align:center;z-index:8}
-#overlay h2{margin:0 0 6px;font-size:24px}
-#overlay p{color:var(--mut);margin:6px 0}
-#overlay .btns{grid-template-columns:1fr 1fr}
-#toast{position:fixed;left:50%;bottom:70px;transform:translateX(-50%);padding:8px 14px;border-radius:10px;background:rgba(0,0,0,.7);border:1px solid var(--line);z-index:9;opacity:0;transition:opacity .25s;pointer-events:none}
+/* Game elements */
+#gTimer{
+  position:fixed;
+  top:68px;
+  left:50%;
+  transform:translateX(-50%);
+  padding:6px 20px;
+  font-size:24px;
+  font-weight:700;
+  font-variant-numeric:tabular-nums;
+  z-index:4;
+}
+#gTimer.low{color:#f43f5e}
+#gBoard{
+  position:fixed;
+  top:68px;
+  left:10px;
+  width:250px;
+  padding:12px;
+  z-index:4;
+}
+#gBoard .r{
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  padding:4px 0;
+  font-size:12.5px;
+}
+#gBoard .r b{font-variant-numeric:tabular-nums;font-weight:600}
+#gBottom{
+  position:fixed;
+  bottom:14px;
+  left:50%;
+  transform:translateX(-50%);
+  width:min(440px,calc(100% - 20px));
+  padding:10px 14px;
+  z-index:4;
+}
+.thermo{
+  height:8px;
+  border-radius:999px;
+  background:rgba(255,255,255,.1);
+  overflow:hidden;
+  margin:6px 0;
+}
+.thermo i{
+  display:block;
+  height:100%;
+  width:0;
+  background:linear-gradient(90deg,#38bdf8,#f59e0b,#f43f5e);
+  transition:width .12s ease;
+}
+#gBottom .line{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  font-size:13px;
+}
+#btnSonar{
+  border:1px solid var(--line);
+  background:rgba(56,189,248,0.15);
+  border-radius:var(--radius-sm);
+  padding:6px 12px;
+  white-space:nowrap;
+  font-size:12.5px;
+  font-weight:600;
+  color:#e0f2fe;
+}
+#btnSonar:disabled{opacity:.4}
+#count{
+  position:fixed;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:min(25vw,160px);
+  font-weight:800;
+  color:#fff;
+  pointer-events:none;
+  z-index:7;
+}
+#overlay{
+  position:fixed;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  width:min(440px,calc(100% - 24px));
+  padding:24px;
+  text-align:center;
+  z-index:8;
+  box-shadow:0 20px 50px rgba(0,0,0,0.8),0 0 0 100vmax rgba(5,8,16,.65);
+}
+#overlay h2{margin:0 0 8px;font-size:22px;font-weight:700}
+#overlay p{color:var(--mut);margin:6px 0;font-size:14px}
+#overlay .btns{grid-template-columns:1fr 1fr;margin-top:16px}
+#toast{
+  position:fixed;
+  left:50%;
+  bottom:70px;
+  transform:translateX(-50%);
+  padding:8px 16px;
+  border-radius:999px;
+  background:rgba(14,21,38,0.95);
+  border:1px solid var(--line-strong);
+  font-size:13px;
+  font-weight:500;
+  color:#fff;
+  box-shadow:0 8px 24px rgba(0,0,0,0.5);
+  z-index:9;
+  opacity:0;
+  transition:opacity .22s;
+  pointer-events:none;
+}
 #toast.on{opacity:1}
-#help{position:fixed;inset:0;background:rgba(3,6,20,.6);display:flex;align-items:center;justify-content:center;z-index:10;padding:12px}
-#help .card2{background:var(--l3);max-width:640px;max-height:88vh;overflow:auto;padding:20px}
-#help h2{margin:0 0 6px}#help h4{margin:14px 0 4px;color:var(--txt)}
-#help p,#help li{color:#cdd6ff;font-size:13.5px}
-#help ul{padding-left:18px;margin:4px 0}
+#help{
+  position:fixed;
+  inset:0;
+  background:rgba(4,7,15,0.7);
+  backdrop-filter:blur(4px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:10;
+  padding:16px;
+}
+#help .card2{
+  max-width:600px;
+  max-height:85vh;
+  overflow:auto;
+  padding:24px;
+}
+#help h2{margin:0 0 8px;font-size:20px;font-weight:700}
+#help h4{margin:16px 0 6px;color:var(--txt);font-size:14px;font-weight:600}
+#help p,#help li{color:#cbd5e1;font-size:13px;line-height:1.55}
+#help ul{padding-left:18px;margin:6px 0}
 
 @media (max-width:760px){
-  .brand small{display:none}
-  .brand b{display:none}
-  .tabs button{padding:6px 9px;white-space:nowrap}
+  .brand small,.brand b{display:none}
+  .tabs button{padding:5px 9px;font-size:12px}
   #panel{top:auto;bottom:10px;left:10px;right:10px;width:auto;max-height:42vh}
   #panel.collapsed{max-height:42px;overflow:hidden}
   #panelToggle{display:block}
-  #stats{top:64px;left:10px;right:10px;width:auto;padding:8px 10px}
-  #stats #statCards{display:flex;gap:10px}
+  #stats{top:64px;left:10px;right:10px;width:auto;padding:10px}
+  #stats #statCards{display:flex;gap:8px}
   #stats .card{flex:1;margin:0}
-  .card .cv{font-size:17px}
-  #chart{height:64px}
+  .card .cv{font-size:16px}
+  #chart{height:60px}
   .legend{display:none}
   #gBoard{width:190px;top:112px}
-  #gTimer{top:62px;font-size:22px}
+  #gTimer{top:62px;font-size:20px}
 }
 
-
-
-
+/* Tab Belajar */
 body.learning #panel,body.learning #stats{display:none!important}
-#learn{position:fixed;inset:66px 0 0 0;z-index:5;pointer-events:none;font-size:15px;line-height:1.55;color:#d5dcff}
+#learn{
+  position:fixed;
+  inset:66px 0 0 0;
+  z-index:5;
+  pointer-events:none;
+  font-size:14px;
+  line-height:1.6;
+  color:#cbd5e1;
+}
 #learn>*{pointer-events:auto}
-#lbar{position:absolute;top:0;left:0;right:0;height:4px;background:rgba(255,255,255,.08)}
-#lfill{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--pink),var(--cyan));box-shadow:0 0 12px var(--cyan);transition:width .5s cubic-bezier(.4,0,.2,1)}
-#lcard{position:absolute;top:16px;left:10px;bottom:84px;width:min(510px,calc(100% - 20px));display:flex;flex-direction:column;background:rgba(18,24,67,.93);backdrop-filter:blur(6px);overflow:hidden}
-#lstage{flex:1;overflow:auto;padding:18px 20px 22px;scrollbar-width:thin}
-#lnav{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);width:min(760px,calc(100% - 20px));display:flex;align-items:center;gap:10px;padding:8px 10px;background:rgba(18,24,67,.95)}
-.nb{width:34px;height:34px;flex:none;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.08);font-size:15px}
-.nb:hover:not(:disabled){background:var(--accent);color:#06102a}.nb:disabled{opacity:.35;cursor:default}
-#lseg{flex:1;display:flex;gap:3px;align-items:center}
-#lseg i{flex:1;height:8px;border-radius:4px;background:rgba(255,255,255,.14);cursor:pointer;transition:background .3s,transform .2s}
-#lseg i:hover{transform:scaleY(1.7);background:rgba(255,255,255,.35)}
-#lseg i.done{background:rgba(77,225,255,.55)}
-#lseg i.cur{background:#fff;box-shadow:0 0 10px var(--cyan);transform:scaleY(1.5)}
-#lcnt{flex:none;min-width:74px;text-align:right;font-variant-numeric:tabular-nums;color:var(--mut);font-size:13px}
-#lcnt b{color:#fff}
+#lbar{
+  position:absolute;
+  top:0;
+  left:0;
+  right:0;
+  height:3px;
+  background:rgba(255,255,255,.06);
+}
+#lfill{
+  display:block;
+  height:100%;
+  width:0;
+  background:linear-gradient(90deg,var(--pink),var(--cyan));
+  transition:width .4s cubic-bezier(.4,0,.2,1);
+}
+#lcard{
+  position:absolute;
+  top:14px;
+  left:10px;
+  bottom:84px;
+  width:min(520px,calc(100% - 20px));
+  display:flex;
+  flex-direction:column;
+  background:rgba(14,21,38,0.92);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  overflow:hidden;
+  border-radius:var(--radius-md);
+}
+#lstage{
+  flex:1;
+  overflow:auto;
+  padding:20px 22px 24px;
+  scrollbar-width:thin;
+}
+#lnav{
+  position:absolute;
+  left:50%;
+  bottom:14px;
+  transform:translateX(-50%);
+  width:min(760px,calc(100% - 20px));
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:8px 12px;
+  background:rgba(14,21,38,0.94);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  border-radius:var(--radius-md);
+}
+.nb{
+  width:32px;
+  height:32px;
+  flex:none;
+  border-radius:8px;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.06);
+  font-size:13px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:all 0.15s ease;
+}
+.nb:hover:not(:disabled){
+  background:rgba(255,255,255,.14);
+  border-color:var(--line-strong);
+  color:#fff;
+}
+.nb:disabled{opacity:.3;cursor:default}
+#lseg{
+  flex:1;
+  display:flex;
+  gap:3px;
+  align-items:center;
+}
+#lseg i{
+  flex:1;
+  height:5px;
+  border-radius:999px;
+  background:rgba(255,255,255,.12);
+  cursor:pointer;
+  transition:background .2s,transform .15s;
+}
+#lseg i:hover{
+  transform:scaleY(1.6);
+  background:rgba(255,255,255,.3);
+}
+#lseg i.done{background:rgba(56,189,248,0.45)}
+#lseg i.cur{
+  background:#38bdf8;
+  transform:scaleY(1.4);
+}
+#lcnt{
+  flex:none;
+  min-width:68px;
+  text-align:right;
+  font-variant-numeric:tabular-nums;
+  color:var(--mut);
+  font-size:12.5px;
+}
+#lcnt b{color:#fff;font-weight:600}
 
-.sl{animation:slIn .45s cubic-bezier(.2,.7,.2,1) both}
+.sl{animation:slIn .35s cubic-bezier(.2,.7,.2,1) both}
 .sl.bwd{animation-name:slInB}
-@keyframes slIn{from{opacity:0;transform:translateX(34px)}}
-@keyframes slInB{from{opacity:0;transform:translateX(-34px)}}
-@keyframes rise{from{opacity:0;transform:translateY(12px)}}
-.sl>*{animation:rise .55s both}
-.sl>*:nth-child(2){animation-delay:.05s}.sl>*:nth-child(3){animation-delay:.1s}.sl>*:nth-child(4){animation-delay:.15s}
-.sl>*:nth-child(5){animation-delay:.2s}.sl>*:nth-child(6){animation-delay:.25s}.sl>*:nth-child(n+7){animation-delay:.3s}
+@keyframes slIn{from{opacity:0;transform:translateX(20px)}}
+@keyframes slInB{from{opacity:0;transform:translateX(-20px)}}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}}
+.sl>*{animation:rise .45s both}
+.sl>*:nth-child(2){animation-delay:.04s}
+.sl>*:nth-child(3){animation-delay:.08s}
+.sl>*:nth-child(4){animation-delay:.12s}
+.sl>*:nth-child(5){animation-delay:.16s}
+.sl>*:nth-child(6){animation-delay:.2s}
+.sl>*:nth-child(n+7){animation-delay:.24s}
 @media (prefers-reduced-motion:reduce){.sl,.sl>*{animation:none}#lfill{transition:none}}
-.sl .tag{color:var(--accent);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;margin:0 0 4px;font-weight:700}
-.sl h2{font-size:clamp(22px,2.6vw,28px);line-height:1.2;margin:0 0 10px;color:#fff}
-.sl h3{font-size:15.5px;margin:0 0 4px;color:#fff}.sl h3 small{font-weight:400;color:var(--mut);font-size:12.5px}
-.sl p{margin:0 0 10px}.sl .lead{font-size:16.5px}.sl .mut{color:var(--mut)}.sl .sm{font-size:13.5px}
-.sl .pk{color:var(--pink)}.sl .cy{color:var(--cyan)}.sl .gd{color:var(--gold)}
-.sl .hl{border:1px solid var(--line);border-left:3px solid var(--accent);background:var(--l1);padding:10px 14px;border-radius:8px;color:#fff;margin:10px 0}
-.sl .k{background:var(--l1);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin:0 0 10px}
-.sl .k.cso{border-top:3px solid var(--pink)}.sl .k.coa{border-top:3px solid var(--cyan)}
+
+.sl .tag{
+  display:inline-block;
+  color:#38bdf8;
+  background:rgba(56,189,248,0.1);
+  border:1px solid rgba(56,189,248,0.2);
+  border-radius:999px;
+  padding:2px 10px;
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  margin:0 0 8px;
+}
+.sl h2{
+  font-size:clamp(20px,2.4vw,25px);
+  font-weight:700;
+  letter-spacing:-0.015em;
+  line-height:1.25;
+  margin:0 0 10px;
+  color:#f8fafc;
+}
+.sl h3{
+  font-size:14.5px;
+  font-weight:600;
+  margin:0 0 4px;
+  color:#f8fafc;
+}
+.sl h3 small{font-weight:400;color:var(--mut);font-size:12px}
+.sl p{margin:0 0 10px;line-height:1.6}
+.sl .lead{font-size:15px;color:#e2e8f0;font-weight:400;line-height:1.6}
+.sl .mut{color:var(--mut)}
+.sl .sm{font-size:13px;line-height:1.55}
+.sl .pk{color:var(--pink);font-weight:600}
+.sl .cy{color:var(--cyan);font-weight:600}
+.sl .gd{color:var(--gold);font-weight:600}
+.sl .hl{
+  border:1px solid var(--line);
+  border-left:3px solid var(--accent);
+  background:rgba(255,255,255,0.03);
+  padding:10px 14px;
+  border-radius:var(--radius-sm);
+  color:#f1f5f9;
+  margin:10px 0;
+  font-size:13.5px;
+}
+.sl .k{
+  background:rgba(255,255,255,0.03);
+  border:1px solid var(--line);
+  border-radius:var(--radius-sm);
+  padding:12px 14px;
+  margin:0 0 10px;
+}
+.sl .k.cso{border-left:3px solid var(--pink)}
+.sl .k.coa{border-left:3px solid var(--cyan)}
 .sl .k p:last-child{margin-bottom:0}
-.sl .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.sl .g2 .k{margin:0}
-.sl .fm{background:#050824;border:1px solid var(--line);border-radius:8px;padding:8px 12px;font:12.5px/1.6 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;color:#bfe9ff;margin:6px 0}
-.sl .d3{background:rgba(77,225,255,.08);border:1px dashed rgba(77,225,255,.45);border-radius:10px;padding:8px 12px;margin:8px 0;font-size:13.5px;color:#e6f7ff}
-.sl .d3 span{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:2px}
-.sl .chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}
-.sl .chips span{background:var(--l3);border:1px solid var(--line);border-radius:20px;padding:3px 11px;font-size:12.5px}
-.sl table{border-collapse:collapse;width:100%;background:var(--l1);font-size:12.5px;margin:6px 0 10px}
-.sl th,.sl td{border:1px solid var(--line);padding:5px 8px;text-align:left;vertical-align:top}
-.sl th{background:var(--l2);color:#fff}.sl td:first-child{color:#fff;font-weight:600}
-.sl svg{width:100%;height:auto;display:block}.sl svg text{font-size:12px;fill:#eaf0ff}
-.sl ul.pc{list-style:none;padding:0;margin:0}.sl ul.pc li{padding:4px 0 4px 22px;position:relative;font-size:14px}
-.sl ul.pc li::before{content:"🌱";position:absolute;left:0}.sl .con ul.pc li::before{content:"🍂"}
-.sl .pro h3{color:#7dffb0}.sl .con h3{color:var(--gold)}
-.sl .hint{color:var(--mut);font-size:12.5px;margin:8px 0 0}
+.sl .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sl .g2 .k{margin:0}
+.sl .fm{
+  background:#050813;
+  border:1px solid var(--line);
+  border-radius:6px;
+  padding:8px 12px;
+  font:12px/1.6 ui-monospace,Menlo,Consolas,monospace;
+  white-space:pre-wrap;
+  color:#93c5fd;
+  margin:6px 0;
+}
+.sl .d3{
+  background:rgba(56,189,248,0.05);
+  border:1px dashed rgba(56,189,248,0.3);
+  border-radius:var(--radius-sm);
+  padding:9px 12px;
+  margin:10px 0;
+  font-size:13px;
+  line-height:1.55;
+  color:#e0f2fe;
+}
+.sl .d3 span{
+  display:block;
+  font-size:10.5px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--accent);
+  font-weight:700;
+  margin-bottom:3px;
+}
+.sl .chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 12px}
+.sl .chips span{
+  background:rgba(255,255,255,0.05);
+  border:1px solid var(--line);
+  border-radius:999px;
+  padding:3px 12px;
+  font-size:12px;
+  font-weight:500;
+  color:#e2e8f0;
+}
+.sl table{
+  border-collapse:separate;
+  border-spacing:0;
+  width:100%;
+  background:rgba(0,0,0,0.2);
+  border:1px solid var(--line);
+  border-radius:8px;
+  overflow:hidden;
+  font-size:12.5px;
+  margin:8px 0 12px;
+}
+.sl th,.sl td{
+  border-bottom:1px solid var(--line);
+  padding:7px 10px;
+  text-align:left;
+  vertical-align:top;
+}
+.sl tr:last-child td{border-bottom:0}
+.sl th{
+  background:rgba(255,255,255,0.06);
+  color:#fff;
+  font-weight:600;
+  font-size:12px;
+}
+.sl td:first-child{color:#fff;font-weight:600}
+.sl ul.pc{list-style:none;padding:0;margin:0}
+.sl ul.pc li{
+  padding:5px 0 5px 22px;
+  position:relative;
+  font-size:13.5px;
+  line-height:1.5;
+}
+.sl ul.pc li::before{
+  content:"✓";
+  position:absolute;
+  left:0;
+  top:5px;
+  width:15px;
+  height:15px;
+  border-radius:50%;
+  background:rgba(16,185,129,0.15);
+  color:#10b981;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:9.5px;
+  font-weight:700;
+}
+.sl .con ul.pc li::before{
+  content:"!";
+  background:rgba(245,158,11,0.15);
+  color:#f59e0b;
+  font-size:10px;
+}
+.sl .pro h3{color:#34d399}
+.sl .con h3{color:#fbbf24}
+.sl .hint{color:var(--mut);font-size:12px;margin:8px 0 0}
 
 .sl .live{display:grid;gap:6px;margin:8px 0}
-.sl .lv{display:grid;grid-template-columns:auto 1fr auto;column-gap:10px;align-items:baseline;border-left:3px solid var(--c);background:var(--l1);border-radius:6px;padding:6px 10px}
-.sl .lv b{color:var(--c)}.sl .lv span{color:var(--mut);font-size:12px}.sl .lv em{font-style:normal;font-size:19px;font-weight:700;color:var(--c);font-variant-numeric:tabular-nums}
-.sl .lv small{grid-column:1/-1;color:var(--mut);font-size:12px}
-.sl .ctl{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
-.sl .b{border:1px solid var(--line);background:rgba(255,255,255,.08);border-radius:9px;padding:6px 12px;font-size:13px}
-.sl .b:hover{background:rgba(255,255,255,.18)}
-.sl .b.on,.sl .b.pri{background:var(--accent);color:#06102a;border-color:transparent;font-weight:700}
+.sl .lv{
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  column-gap:10px;
+  align-items:baseline;
+  border-left:3px solid var(--c);
+  background:rgba(255,255,255,0.03);
+  border-radius:0 var(--radius-sm) var(--radius-sm) 0;
+  padding:6px 10px;
+}
+.sl .lv b{color:var(--c);font-size:13px;font-weight:600}
+.sl .lv span{color:var(--mut);font-size:11.5px}
+.sl .lv em{
+  font-style:normal;
+  font-size:18px;
+  font-weight:700;
+  color:var(--c);
+  font-variant-numeric:tabular-nums;
+}
+.sl .lv small{grid-column:1/-1;color:var(--mut);font-size:11.5px}
+.sl .ctl{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.sl .b{
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.06);
+  border-radius:var(--radius-sm);
+  padding:6px 12px;
+  font-size:12.5px;
+  font-weight:500;
+  color:var(--txt);
+  transition:all 0.15s ease;
+}
+.sl .b:hover{
+  background:rgba(255,255,255,.14);
+  border-color:var(--line-strong);
+}
+.sl .b.on,.sl .b.pri{
+  background:#0284c7;
+  color:#fff;
+  border-color:transparent;
+  font-weight:600;
+}
 .sl .tgs{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;margin:8px 0}
-.sl .tg{display:flex;align-items:center;gap:7px;font-size:13.5px;cursor:pointer}.sl .tg input{accent-color:var(--cyan)}
+.sl .tg{display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer}
+.sl .tg input{accent-color:var(--accent)}
 .sl .fns{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
-.sl .rg{display:flex;align-items:center;gap:10px}.sl .rg input{flex:1;accent-color:var(--cyan)}.sl .rg b{min-width:38px;text-align:right;color:var(--accent)}
-.sl .flow .fl{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
-.sl .fs{border:1px solid var(--line);background:rgba(255,255,255,.05);border-radius:20px;padding:4px 11px 4px 5px;font-size:12.5px;display:flex;align-items:center;gap:6px}
-.sl .fs b{width:20px;height:20px;border-radius:50%;background:var(--l3);display:grid;place-items:center;font-size:11px}
-.sl .fs.on{background:var(--accent);color:#06102a;border-color:transparent;font-weight:700}.sl .fs.on b{background:#06102a;color:var(--accent)}
-.sl .fd{background:var(--l1);border:1px solid var(--line);border-radius:10px;padding:10px 14px;animation:rise .35s both}
-.sl .gt .row{display:flex;align-items:center;gap:8px;margin:4px 0;font-size:12px}.sl .gt .row b{width:40px;flex:none}
-.sl .gt .tr{flex:1;display:flex;height:26px;background:var(--bg);border:1px solid var(--line);border-radius:6px;overflow:hidden}
-.sl .gt .tr i{font-style:normal;font-size:11px;text-align:center;line-height:26px;color:#06102a;font-weight:700;border-right:2px solid var(--bg);overflow:hidden}
-.sl .big{font-size:40px;line-height:1;margin:2px 0 8px}
+.sl .rg{display:flex;align-items:center;gap:10px}
+.sl .rg input{flex:1;accent-color:var(--accent)}
+.sl .rg b{min-width:38px;text-align:right;color:var(--accent);font-variant-numeric:tabular-nums}
+.sl .flow .fl{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.sl .fs{
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.04);
+  border-radius:999px;
+  padding:4px 12px 4px 5px;
+  font-size:12px;
+  font-weight:500;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  color:var(--mut);
+  transition:all 0.15s ease;
+}
+.sl .fs b{
+  width:20px;
+  height:20px;
+  border-radius:50%;
+  background:rgba(255,255,255,0.08);
+  display:grid;
+  place-items:center;
+  font-size:10.5px;
+  font-weight:700;
+}
+.sl .fs.on{
+  background:#0284c7;
+  color:#fff;
+  border-color:transparent;
+  font-weight:600;
+}
+.sl .fs.on b{background:rgba(0,0,0,0.25);color:#fff}
+.sl .fd{
+  background:rgba(255,255,255,0.03);
+  border:1px solid var(--line);
+  border-radius:var(--radius-sm);
+  padding:12px 14px;
+  animation:rise .3s both;
+}
+.sl .gt .row{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:12px}
+.sl .gt .row b{width:40px;flex:none;font-weight:600;color:#fff}
+.sl .gt .tr{
+  flex:1;
+  display:flex;
+  height:26px;
+  background:rgba(0,0,0,0.3);
+  border:1px solid var(--line);
+  border-radius:6px;
+  overflow:hidden}
+.sl .gt .tr i{
+  font-style:normal;
+  font-size:11px;
+  text-align:center;
+  line-height:26px;
+  color:#050813;
+  font-weight:700;
+  border-right:2px solid rgba(0,0,0,0.2);
+  overflow:hidden;
+}
+.sl .big{
+  display:inline-flex;
+  gap:8px;
+  font-size:32px;
+  line-height:1;
+  margin:2px 0 10px;
+}
 @media (max-width:900px){
   #lcard{top:auto;bottom:76px;height:46vh;width:auto;right:10px}
-  #lstage{padding:14px 14px 18px;font-size:14px}
+  #lstage{padding:14px 14px 18px;font-size:13.5px}
   .sl .g2{grid-template-columns:1fr}
   #lcnt{min-width:58px}
-  .tabs button{font-size:13px;padding:6px 7px}
+  .tabs button{font-size:12px;padding:5px 8px}
 }
 
 </style>
@@ -192,18 +983,39 @@ body.learning #panel,body.learning #stats{display:none!important}
 <div id="app"></div>
 
 <div id="topbar" class="glass">
-  <div class="brand"><span>🐱🦝</span><b>Meta3D Arena</b><small>CSO · COA</small></div>
-  <div class="tabs"><button id="tabSim" class="on">🔬 Simulasi</button><button id="tabLearn">📖 Belajar</button><button id="tabGame">🎮 Game</button></div>
+  <div class="brand">
+    <div class="brand-badge">
+      <span class="badge-cat">CSO</span>
+      <span class="badge-vs">vs</span>
+      <span class="badge-coati">COA</span>
+    </div>
+    <b>Meta3D Arena</b>
+    <small>Cat Swarm · Coati Optimization</small>
+  </div>
+  <div class="tabs">
+    <button id="tabSim" class="on">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21v-7"/><path d="M4 10V3"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M20 21v-5"/><path d="M20 12V3"/><path d="M1 14h6"/><path d="M9 8h6"/><path d="M17 16h6"/></svg>
+      Simulasi
+    </button>
+    <button id="tabLearn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+      Belajar
+    </button>
+    <button id="tabGame">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" x2="10" y1="12" y2="12"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="15" x2="15.01" y1="13" y2="13"/><line x1="18" x2="18.01" y1="11" y2="11"/><rect width="20" height="12" x="2" y="6" rx="6"/></svg>
+      Game
+    </button>
+  </div>
   <button id="btnHelp" class="ico" title="Bantuan">?</button>
 </div>
 
 <aside id="panel" class="glass">
-  <button id="panelToggle">⚙️ Panel kontrol (ketuk untuk buka/tutup)</button>
+  <button id="panelToggle">⚙ Panel kontrol (ketuk untuk buka/tutup)</button>
 
   <div id="simPanel">
     <h3>Algoritma</h3>
     <div class="seg" id="segAlgo">
-      <button data-v="cso">🐱 CSO</button><button data-v="coa">🦝 COA</button><button data-v="duel" class="on">⚔️ Duel</button>
+      <button data-v="cso"><span style="color:var(--pink);margin-right:4px;">●</span>CSO</button><button data-v="coa"><span style="color:var(--cyan);margin-right:4px;">●</span>COA</button><button data-v="duel" class="on">Duel</button>
     </div>
     <label>Fungsi uji (cari titik terendah)<select id="selFn"></select></label>
     <label>Populasi <b id="vN">24</b><input type="range" id="rN" min="10" max="60" step="2" value="24"></label>
@@ -232,16 +1044,16 @@ body.learning #panel,body.learning #stats{display:none!important}
   </div>
 
   <div id="gamePanel" hidden>
-    <h3>🎮 Berburu Harta Karun</h3>
-    <p class="hint" style="margin-top:0">Harta karun = <b>titik optimum global</b> (nilai fungsi terendah) yang tersembunyi dalam kabut. Temukan lebih dulu daripada 🐱 tim CSO dan 🦝 tim COA!</p>
+    <h3>Berburu Harta Karun</h3>
+    <p class="hint" style="margin-top:0">Harta karun = <b>titik optimum global</b> (nilai fungsi terendah) yang tersembunyi dalam kabut. Temukan lebih dulu daripada tim CSO dan tim COA!</p>
     <label>Medan<select id="gFn"></select></label>
     <label style="margin-bottom:4px">Kesulitan bot</label>
     <div class="seg" id="segDiff"><button data-v="easy">Santai</button><button data-v="normal" class="on">Normal</button><button data-v="hard">Susah</button></div>
     <ul class="keys">
-      <li><kbd>W A S D</kbd> / panah = jalan</li>
-      <li><b>Klik / ketuk</b> medan = jalan ke sana</li>
-      <li><kbd>Spasi</kbd> = Sonar (buka kabut luas)</li>
-      <li>Warna emas = lembah dalam = dekat harta</li>
+      <li><kbd>W A S D</kbd> / panah = navigasi gerak</li>
+      <li><b>Klik / ketuk</b> medan = jalan ke titik target</li>
+      <li><kbd>Spasi</kbd> = Sonar (buka area kabut)</li>
+      <li>Warna emas = lembah terdalam = dekat harta</li>
     </ul>
     <button id="btnStart" class="primary">Mulai Game</button>
     <div id="records"></div>
@@ -259,7 +1071,7 @@ body.learning #panel,body.learning #stats{display:none!important}
 <div id="gTimer" class="glass" hidden>60</div>
 <div id="gBoard" class="glass" hidden></div>
 <div id="gBottom" class="glass" hidden>
-  <div class="line"><span>🌡️ <b id="gTemp">—</b></span><span>f = <b id="gF">—</b></span><button id="btnSonar">📡 Sonar</button></div>
+  <div class="line"><span>Suhu: <b id="gTemp">—</b></span><span>f = <b id="gF">—</b></span><button id="btnSonar">📡 Sonar</button></div>
   <div class="thermo"><i id="gBar"></i></div>
 </div>
 <div id="count" hidden></div>
@@ -284,23 +1096,23 @@ body.learning #panel,body.learning #stats{display:none!important}
 
 <div id="help" hidden>
   <div class="card2 glass">
-    <h2>Tentang simulasi</h2>
+    <h2>Tentang Simulasi</h2>
     <p>Semua agen bergerak di permukaan 3D sebuah fungsi uji. <b>Tujuannya: menemukan titik terendah</b> (nilai fungsi minimum). Tinggi permukaan = nilai fungsi.</p>
-    <h4>🐱 Cat Swarm Optimization (CSO)</h4>
+    <h4>Cat Swarm Optimization (CSO)</h4>
     <ul>
       <li>Tiap kucing berada di salah satu mode: <b>seeking</b> (mengamati, tenang) atau <b>tracing</b> (mengejar, menyala merah muda). Rasio mengejar diatur lewat <b>MR</b>.</li>
       <li><b>Seeking</b>: kucing membuat <b>SMP</b> salinan posisi, menggeser tiap salinan sedikit (<b>SRD</b>), lalu memilih satu kandidat secara roulette berdasarkan fitness. Titik-titik kandidat ditampilkan samar.</li>
       <li><b>Tracing</b>: kecepatan kucing ditarik ke posisi kucing terbaik (seperti PSO). Sinar merah muda menandai posisi terbaik.</li>
     </ul>
-    <h4>🦝 Coati Optimization Algorithm (COA)</h4>
+    <h4>Coati Optimization Algorithm (COA)</h4>
     <ul>
       <li><b>Fase 1 · berburu iguana (eksplorasi)</b>: iguana = solusi terbaik di atas pohon. Separuh koati memanjat mendekatinya (menyala hijau). Iguana lalu jatuh ke posisi acak, dan separuh lainnya mendekat atau menjauh darinya tergantung nilai fitness.</li>
       <li><b>Fase 2 · menghindar predator (eksploitasi)</b>: koati melangkah acak di sekitar posisinya (menyala oranye dan sedikit membesar), langkahnya mengecil seiring iterasi.</li>
       <li>Posisi baru hanya diterima jika lebih baik (greedy).</li>
     </ul>
-    <h4>⚔️ Mode Duel</h4>
+    <h4>Mode Duel</h4>
     <p>Kedua populasi mulai dari posisi awal yang sama pada medan yang sama, jadi perbandingannya adil. Perhatikan jumlah <i>evals</i>: CSO butuh banyak evaluasi tiap iterasi.</p>
-    <h4>🎮 Game</h4>
+    <h4>Game Berburu Harta</h4>
     <p>Jelajahi medan yang berkabut sambil berlomba dengan dua tim bot. Gunakan warna dan nilai suhu untuk menebak arah, dan Sonar untuk melihat area luas. Pemenang adalah yang pertama mencapai area harta karun.</p>
     <div class="btns"><button id="helpClose" class="primary wide">Mengerti</button></div>
   </div>
@@ -467,8 +1279,8 @@ const A = window.Algo;
 const $ = id => document.getElementById(id);
 const clamp = (v,a,b) => v<a?a:v>b?b:v;
 const W = 6, SEG = 112, S1 = SEG + 1, STEP = 2*W/SEG, HMAX = 3.4;
-const COL = { cso:0xff5c9a, coa:0x4de1ff };
-const COLS = { cso:'#ff5c9a', coa:'#4de1ff' };
+const COL = { cso:0xf43f5e, coa:0x0ea5e9 };
+const COLS = { cso:'#f43f5e', coa:'#0ea5e9' };
 const newRng = () => A.mulberry32((Math.random()*4294967296)>>>0);
 const lin = c => Math.pow(c,2.2);
 
@@ -486,8 +1298,8 @@ const renderer = new THREE.WebGLRenderer({ antialias:true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 $('app').appendChild(renderer.domElement);
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0b1030);
-scene.fog = new THREE.FogExp2(0x0b1030, 0.012);
+scene.background = new THREE.Color(0x080c16);
+scene.fog = new THREE.FogExp2(0x080c16, 0.012);
 const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 300);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true; controls.dampingFactor = .08; controls.enablePan = false;
@@ -509,9 +1321,9 @@ const sun = new THREE.DirectionalLight(0xffffff, 1.15); sun.position.set(8,14,6)
   scene.add(new THREE.Points(g, new THREE.PointsMaterial({ color:0xffffff, size:.5, transparent:true, opacity:.75, fog:false })));
 }
 { // alas diorama
-  const base = new THREE.Mesh(new THREE.BoxGeometry(2*W+.6,.5,2*W+.6), new THREE.MeshStandardMaterial({ color:0x151b45, roughness:.6, metalness:.2 }));
+  const base = new THREE.Mesh(new THREE.BoxGeometry(2*W+.6,.5,2*W+.6), new THREE.MeshStandardMaterial({ color:0x0f1629, roughness:.7, metalness:.15 }));
   base.position.y = -.3; scene.add(base);
-  const edge = new THREE.LineSegments(new THREE.EdgesGeometry(base.geometry), new THREE.LineBasicMaterial({ color:0x4de1ff, transparent:true, opacity:.35 }));
+  const edge = new THREE.LineSegments(new THREE.EdgesGeometry(base.geometry), new THREE.LineBasicMaterial({ color:0x38bdf8, transparent:true, opacity:.2 }));
   edge.position.copy(base.position); scene.add(edge);
 }
 
@@ -807,7 +1619,7 @@ for(const k in A.FUNCS){
   const o1 = document.createElement('option'); o1.value = k; o1.textContent = A.FUNCS[k].label; $('selFn').appendChild(o1);
   const o2 = o1.cloneNode(true); $('gFn').appendChild(o2);
 }
-{ const r = document.createElement('option'); r.value = 'random'; r.textContent = '🎲 Acak'; $('gFn').insertBefore(r, $('gFn').firstChild); $('gFn').value = 'random'; }
+{ const r = document.createElement('option'); r.value = 'random'; r.textContent = 'Acak (Random)'; $('gFn').insertBefore(r, $('gFn').firstChild); $('gFn').value = 'random'; }
 $('selFn').value = S.fn;
 
 bindSeg('segAlgo', v => { S.algo = v; createSwarms('sim'); S.running = false; syncRun(); });
@@ -841,7 +1653,7 @@ document.addEventListener('click', e => { const b = e.target.closest('button'); 
 if(innerWidth < 760) $('panel').classList.add('collapsed');
 
 /* ---------------- stats & chart ---------------- */
-const NAMES = { cso:'🐱 CSO · Cat Swarm', coa:'🦝 COA · Coati' };
+const NAMES = { cso:'CSO · Cat Swarm', coa:'COA · Coati' };
 const fmtF = v => !isFinite(v) ? '—' : v===0 ? '0' : v<.001 ? v.toExponential(2) : v.toFixed(v<1?4:3);
 function phaseText(sw){
   if(sw.kind==='cso'){ const t = sw.algo.agents.filter(a => a.mode==='trace').length; return t+' mengejar · '+(sw.algo.N-t)+' mengamati'; }
@@ -866,7 +1678,7 @@ function drawChart(){
   if(!isFinite(mn)){ return; }
   mx = Math.ceil(mx)+.2; mn = Math.floor(mn)-.2; if(mx-mn<2) mn = mx-2;
   const pl = 30, pr = 6, pt = 6, pb = 14, X = i => pl+(w-pl-pr)*i/Math.max(S.T,10), Y = v => pt+(h-pt-pb)*(1-(v-mn)/(mx-mn));
-  x.strokeStyle = 'rgba(255,255,255,.1)'; x.fillStyle = 'rgba(200,210,255,.7)'; x.font = '10px system-ui'; x.lineWidth = 1;
+  x.strokeStyle = 'rgba(255,255,255,.1)'; x.fillStyle = 'rgba(200,210,255,.7)'; x.font = "10px 'Lexend', system-ui"; x.lineWidth = 1;
   for(let v=Math.ceil(mn); v<=mx; v++){ const yy = Y(v); x.beginPath(); x.moveTo(pl,yy); x.lineTo(w-pr,yy); x.stroke(); x.fillText('1e'+v, 1, yy+3); }
   x.fillText('iterasi →', w-52, h-2);
   swarms.forEach(s => {
@@ -940,7 +1752,7 @@ function updatePlayer(dt){
   G.curF = prob.f(fx,fy); G.curN = prob.norm(fx,fy); if(G.curF<G.bestF) G.bestF = G.curF;
   return prob.distToOpt(fx,fy) < G.winR;
 }
-function tempLabel(n){ return n<.015?'Membara! 🔥':n<.06?'Panas 🌋':n<.18?'Hangat ☀️':n<.4?'Dingin 🌊':'Beku ❄️'; }
+function tempLabel(n){ return n<.015?'Sangat Dekat (Membara)':n<.06?'Dekat (Panas)':n<.18?'Hangat':n<.4?'Jauh (Dingin)':'Sangat Jauh (Beku)'; }
 function updateGame(dt){
   if(G.phase==='count'){
     G.count -= dt; $('count').textContent = G.count>.2 ? Math.ceil(G.count-.2) : 'GO!';
@@ -977,9 +1789,9 @@ function renderHud(){
   $('gTimer').textContent = Math.ceil(left); $('gTimer').classList.toggle('low', left<10);
   const cso = swarms.find(s => s.kind==='cso'), coa = swarms.find(s => s.kind==='coa');
   $('gBoard').innerHTML = `<div style="color:var(--mut);font-size:11px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px">Nilai terbaik (0 = harta)</div>
-    <div class="r"><span>🧑 Kamu</span><b>${fmtF(G.bestF)}</b></div>
-    <div class="r" style="color:${COLS.cso}"><span>🐱 Tim CSO</span><b>${fmtF(cso.algo.best.f)}</b></div>
-    <div class="r" style="color:${COLS.coa}"><span>🦝 Tim COA</span><b>${fmtF(coa.algo.best.f)}</b></div>`;
+    <div class="r"><span>Kamu</span><b>${fmtF(G.bestF)}</b></div>
+    <div class="r" style="color:${COLS.cso}"><span>Tim CSO</span><b>${fmtF(cso.algo.best.f)}</b></div>
+    <div class="r" style="color:${COLS.coa}"><span>Tim COA</span><b>${fmtF(coa.algo.best.f)}</b></div>`;
   $('gTemp').textContent = tempLabel(G.curN); $('gF').textContent = fmtF(G.curF);
   $('gBar').style.width = (100*(1-Math.min(1,G.curN/.5))).toFixed(0)+'%';
   const b = $('btnSonar'); b.disabled = G.sonarCd>0; b.textContent = G.sonarCd>0 ? '📡 '+Math.ceil(G.sonarCd)+'s' : '📡 Sonar';
@@ -988,25 +1800,25 @@ function endGame(winner){
   G.phase = 'over'; terrain.reveal.fill(1); refreshAll(); optGroup.visible = true;
   if(G.sonar){ G.sonar = null; sonarRing.visible = false; }
   const cso = swarms.find(s => s.kind==='cso'), coa = swarms.find(s => s.kind==='coa');
-  const rows = [['🧑 Kamu',G.bestF],['🐱 Tim CSO',cso.algo.best.f],['🦝 Tim COA',coa.algo.best.f]]
+  const rows = [['Kamu',G.bestF],['Tim CSO',cso.algo.best.f],['Tim COA',coa.algo.best.f]]
     .map(r => `<div style="display:flex;justify-content:space-between"><span>${r[0]}</span><b>${fmtF(r[1])}</b></div>`).join('');
   let title, msg;
   if(winner==='player'){
-    title = '🏆 Kamu menemukan hartanya!';
+    title = 'Kamu menemukan target optimum!';
     msg = 'Waktu: <b>'+G.t.toFixed(1)+' dtk</b>';
     const rec = getRec(); if(!rec || G.t < +rec){ setRec(G.t); msg += ' · 🎉 rekor baru!'; }
   } else if(winner){
-    title = winner==='cso' ? '😿 Tim Kucing (CSO) menang' : '🦝 Tim Koati (COA) menang';
+    title = winner==='cso' ? 'Tim CSO menang' : 'Tim COA menang';
     msg = 'Mereka menemukan harta pada detik <b>'+G.t.toFixed(1)+'</b>.';
   } else {
     const best = Math.min(G.bestF, cso.algo.best.f, coa.algo.best.f);
-    title = '⏰ Waktu habis';
-    msg = 'Tidak ada yang tiba di harta. Paling dekat: <b>'+(best===G.bestF?'kamu 🎉':best===cso.algo.best.f?'Tim CSO':'Tim COA')+'</b>.';
+    title = 'Waktu habis';
+    msg = 'Tidak ada yang tiba di target. Paling dekat: <b>'+(best===G.bestF?'Kamu':best===cso.algo.best.f?'Tim CSO':'Tim COA')+'</b>.';
   }
   $('ovTitle').textContent = title;
   $('ovBody').innerHTML = `<p>${msg}</p><div style="margin:10px 0;text-align:left;padding:10px;border-radius:10px;background:rgba(255,255,255,.06)">
     <div style="color:var(--mut);font-size:12px;margin-bottom:4px">Nilai terbaik masing-masing (makin kecil makin baik)</div>${rows}</div>`;
-  $('ovA').textContent = '🔁 Main lagi'; $('ovB').textContent = '🔬 Ke simulasi';
+  $('ovA').textContent = 'Main lagi'; $('ovB').textContent = 'Ke simulasi';
   $('ovA').onclick = startGame; $('ovB').onclick = () => setMode('sim');
   $('overlay').hidden = false; $('gBottom').hidden = true;
   showRecords();
@@ -1169,7 +1981,7 @@ const PC_COA={pro:['Sederhana &amp; hampir tanpa parameter (cukup N dan T)','Fas
 
 const SL=[
 /* 0 */{name:'Judul',keep:false,scene:{algo:'duel',fn:'rastrigin',run:1,spd:.5,T:300},tag:'Strategi Optimasi Komputasi Awan',html:()=>`
- <div class="big">🐱 🦝</div>
+ <div class="chips" style="margin-bottom:12px"><span style="color:var(--pink);border-color:rgba(244,63,94,0.3)">Cat Swarm (CSO)</span><span style="color:var(--cyan);border-color:rgba(14,165,233,0.3)">Coati Optimization (COA)</span></div>
  <h2>Cat Swarm Optimization &amp; Coati Optimization Algorithm</h2>
  <p class="lead">Algoritma metaheuristik untuk cloud task scheduling, dijelaskan langsung lewat <b>simulasi 3D</b> di belakang kartu ini.</p>
  <div class="chips"><span>Imam Mahmud Dalil Fauzan</span><span>Christiano Ronaldo Silalahi</span><span>Ahmad Yazid Arifuddin</span><span>Adiwidya Budi Pratama</span><span>Oscaryavat Viryavan</span></div>
@@ -1188,7 +2000,7 @@ const SL=[
  <h2>Metaheuristic dan istilahnya</h2>
  <div class="hl">Strategi pencarian umum yang memakai sekelompok penjelajah dan sedikit keacakan untuk menemukan solusi yang sangat baik dalam waktu wajar, tanpa mengecek semua kemungkinan.</div>
  <table><tr><th>Istilah</th><th>Artinya</th><th>Di simulasi 3D</th></tr>
- <tr><td>Agen</td><td>Satu penjelajah</td><td>Satu kucing 🐱 atau koati 🦝</td></tr>
+ <tr><td>Agen</td><td>Satu penjelajah</td><td>Satu kucing (CSO) atau koati (COA)</td></tr>
  <tr><td>Populasi</td><td>Semua agen</td><td>Satu kawanan (slider di bawah)</td></tr>
  <tr><td>Fitness</td><td>Seberapa bagus sebuah posisi</td><td>Tinggi permukaan, makin rendah makin bagus</td></tr>
  <tr><td>Iterasi</td><td>Satu putaran gerak</td><td>Satu "langkah" simulasi</td></tr>
@@ -1200,7 +2012,7 @@ const SL=[
  ${runBtns()}`},
 
 /* 3 */{name:'CSO: konsep',scene:{algo:'cso',fn:'rastrigin',run:0},tag:'3 · Algoritma pertama',html:()=>`
- <h2>CSO: Konsep Dasar 🐱</h2>
+ <h2>CSO: Konsep Dasar</h2>
  <div class="k cso"><h3>Apa itu CSO?</h3><p>Algoritma <i>swarm intelligence</i> oleh Chu, Tsai &amp; Pan (2006), terinspirasi perilaku kucing. Versi asli bekerja di ruang kontinu dan single-objective.</p></div>
  <div class="k cso"><h3>Ide inti</h3><p>Kucing punya dua mode: <b>seeking</b> (diam waspada → local search) dan <b>tracing</b> (mengejar mangsa → bergerak ke best cat). Pembagian diatur oleh <b>MR</b>.</p></div>
  <div class="k cso"><h3>Kerangka kerja</h3><p class="sm">Population → hitung fitness → bagi mode via MR → update posisi → bagi ulang → ulangi sampai iterasi maksimum.</p></div>
@@ -1209,10 +2021,10 @@ const SL=[
 
 /* 4 */{name:'CSO: dua mode',scene:{algo:'cso',fn:'rastrigin',run:1,spd:.5},tag:'3 · CSO',html:()=>`
  <h2>Dua mode kucing: seeking &amp; tracing</h2>
- <div class="k cso"><h3>😺 Seeking: mengamati</h3>
+ <div class="k cso"><h3>Seeking: Mengamati</h3>
   <ol class="sm" style="margin:0 0 6px;padding-left:20px"><li>Salin posisi kucing sebanyak <b>SMP</b></li><li>Geser tiap salinan sedikit (jangkauan <b>SRD</b>)</li><li>Pilih satu salinan lewat roulette wheel: fitness bagus, peluang besar</li></ol>
   ${d3('Kucing tenang, <b>titik-titik samar</b> di sekitarnya adalah kandidat salinan yang muncul sesaat tiap iterasi.')}</div>
- <div class="k cso"><h3>😼 Tracing: mengejar</h3>
+ <div class="k cso"><h3>Tracing: Mengejar</h3>
   <p class="sm" style="margin:0 0 6px">Velocity ditarik ke best cat, mirip PSO: <code>v + c1·r·(best − x)</code> lalu <code>x + v</code>.</p>
   ${d3('Kucing <b>menyala merah muda</b> dan sedikit membesar, berlari lurus ke arah sinar. Simulasi 3D menambahkan momentum <code>w = 0,6</code> pada kecepatan.')}</div>
  <div class="tgs">${tgl('cGhost','Tampilkan kandidat seeking')}${tgl('cTrail','Tampilkan jejak')}</div>
@@ -1239,7 +2051,7 @@ const SL=[
 /* 7 */{name:'CSO: plus minus',scene:{algo:'cso',fn:'rastrigin',run:1,spd:1},tag:'3 · CSO',html:()=>pcHTML('Kelebihan &amp; kekurangan CSO',PC_CSO.pro,PC_CSO.con)+`${d3('Coba medan <b>Rastrigin</b> lalu naikkan MR di slide sebelumnya: apakah kawanan terjebak di lembah dangkal?')}${live('cso')}`},
 
 /* 8 */{name:'COA: konsep',scene:{algo:'coa',fn:'rastrigin',run:0},tag:'4 · Algoritma kedua',html:()=>`
- <h2>COA: Konsep Dasar 🦝</h2>
+ <h2>COA: Konsep Dasar</h2>
  <div class="k coa"><h3>Apa itu COA?</h3><p>Metaheuristik bio-inspired oleh Dehghani, Montazeri, Trojovská &amp; Trojovský (2023), terinspirasi perilaku coati (<i>Nasua</i>). Aturannya sederhana dan hampir tanpa tuning parameter.</p></div>
  <div class="k coa"><h3>Ide inti</h3><p>Dua perilaku: <b>berburu iguana</b> (exploration) dan <b>kabur dari predator</b> (exploitation). Separuh coati memanjat pohon, separuh menunggu di tanah. Coati terbaik dianggap iguana.</p></div>
  <div class="k coa"><h3>Kerangka kerja</h3><p class="sm">Population → Fase 1 (exploration) → Fase 2 (exploitation) → greedy selection → ulangi sampai iterasi maksimum.</p></div>
@@ -1248,10 +2060,10 @@ const SL=[
 
 /* 9 */{name:'COA: dua fase',scene:{algo:'coa',fn:'rastrigin',run:1,spd:.5},tag:'4 · COA',html:()=>`
  <h2>Dua fase koati: exploration &amp; exploitation</h2>
- <div class="k coa"><h3>🦎 Fase 1: berburu iguana</h3>
+ <div class="k coa"><h3>Fase 1: Berburu Iguana</h3>
   <ol class="sm" style="margin:0 0 6px;padding-left:20px"><li>Separuh koati (di pohon) mendekati iguana = solusi terbaik</li><li>Separuh lain (di tanah) menuju titik jatuh iguana yang acak: mendekat jika titik itu lebih baik, menjauh jika tidak</li></ol>
   ${d3('Koati yang memanjat <b>menyala hijau</b>. Iguana kecil jatuh ke titik acak, berputar sebentar, lalu hilang.')}</div>
- <div class="k coa"><h3>🛡️ Fase 2: kabur dari predator</h3>
+ <div class="k coa"><h3>Fase 2: Kabur dari Predator</h3>
   <ol class="sm" style="margin:0 0 6px;padding-left:20px"><li>Tiap koati melangkah acak dalam batas lokal yang <b>mengecil</b> (lb/t, ub/t)</li><li>Posisi baru diterima hanya jika fitness lebih baik (greedy)</li></ol>
   ${d3('Koati <b>menyala oranye</b> dan sedikit membesar. Langkahnya makin kecil seiring iterasi, jadi pencarian makin halus.')}</div>
  <p class="sm mut">Satu iterasi COA = Fase 1 lalu Fase 2. Perhatikan teks fase pada kartu live.</p>
@@ -1278,7 +2090,7 @@ const SL=[
 /* 12 */{name:'COA: plus minus',scene:{algo:'coa',fn:'rastrigin',run:1,spd:1},tag:'4 · COA',html:()=>pcHTML('Kelebihan &amp; kekurangan COA',PC_COA.pro,PC_COA.con)+`${d3('Greedy selection terlihat jelas: nilai terbaik COA tidak pernah naik, hanya turun atau tetap.')}${live('coa')}`},
 
 /* 13 */{name:'Duel',scene:{algo:'duel',fn:'rastrigin',run:1,spd:1},tag:'5 · Adu langsung',html:()=>`
- <h2>⚔️ Duel CSO vs COA</h2>
+ <h2>Duel: CSO vs COA</h2>
  <p>Kedua kawanan mulai dari <b>posisi awal yang sama</b> di medan yang sama, jadi perbandingannya adil. Ganti medan, acak optimum, lalu ulangi beberapa kali.</p>
  ${live('all')}
  ${runBtns()}
@@ -1288,7 +2100,7 @@ const SL=[
 
 /* 14 */{name:'Tabel perbandingan',keep:true,tag:'5 · Perbandingan',html:()=>`
  <h2>Perbandingan CSO vs COA</h2>
- <table><tr><th>Aspek</th><th class="pk">🐱 CSO</th><th class="cy">🦝 COA</th></tr>
+ <table><tr><th>Aspek</th><th class="pk">CSO (Cat Swarm)</th><th class="cy">COA (Coati)</th></tr>
  <tr><td>Tahun</td><td>2006</td><td>2023</td></tr>
  <tr><td>Inspirasi</td><td>Kucing: mengamati &amp; mengejar</td><td>Coati: berburu iguana &amp; kabur dari predator</td></tr>
  <tr><td>Struktur</td><td>2 mode, dibagi <b>per individu</b> via MR, dibagi ulang tiap iterasi</td><td>2 fase, dijalankan <b>berurutan untuk semua individu</b></td></tr>
@@ -1312,7 +2124,7 @@ const SL=[
  ${d3('Agen di 3D hanya punya 2 variabel (x, z). Di scheduling, agen membawa satu angka per tugas (di demo: 8 angka), dibulatkan jadi nomor VM. Prinsip gerak dan seleksinya sama persis.')}
  <h3>Demo: 8 task ke 3 VM (kecepatan 1 / 1,5 / 2)</h3>
  <div class="gt"></div>
- <div class="ctl"><button class="b" data-act="sched:r">🎲 Acak</button><button class="b pri" data-act="sched:o">✨ Cari lebih baik</button></div>
+ <div class="ctl"><button class="b" data-act="sched:r">Acak</button><button class="b pri" data-act="sched:o">Cari lebih baik</button></div>
  <p class="hint">"Cari lebih baik" memakai pencarian acak sederhana, hanya untuk memperlihatkan arti makespan. Makespan = waktu VM yang paling lama selesai.</p>`,
  init:schedRand},
 
@@ -1333,7 +2145,7 @@ const SL=[
 /* 17 */{name:'Ringkasan',keep:true,tag:'Penutup',html:()=>`
  <h2>Ringkasan</h2>
  <ul style="padding-left:20px;margin:0 0 10px"><li>Metaheuristic mencari solusi sangat baik tanpa mengecek semua kemungkinan.</li><li><b class="pk">CSO</b> membagi kucing ke mode mengamati dan mengejar, dengan banyak parameter.</li><li><b class="cy">COA</b> memakai dua fase berurutan dengan greedy selection, hampir tanpa parameter.</li><li>Algoritma yang baik menyeimbangkan <b>eksplorasi</b> dan <b>eksploitasi</b>.</li></ul>
- <div class="ctl"><button class="b pri" data-act="tab:Sim">🔬 Buka Simulasi penuh</button><button class="b pri" data-act="tab:Game">🎮 Main Game</button><button class="b" data-act="go:0">↺ Ulangi dari awal</button></div>
+ <div class="ctl"><button class="b pri" data-act="tab:Sim">Buka Simulasi penuh</button><button class="b pri" data-act="tab:Game">Main Game</button><button class="b" data-act="go:0">Ulangi dari awal</button></div>
  <p class="hint">Di tab Simulasi kamu bisa mengatur semua parameter. Di Game, kamu berlomba mencari optimum global melawan tim CSO dan COA.</p>`},
 
 /* 18 */{name:'Referensi',keep:true,tag:'Sumber',html:()=>`
@@ -1348,7 +2160,7 @@ const SL=[
  <li>COTSA: A Load-Balanced Task Scheduling Algorithm using Coati Optimization (2025). AUT J. Modeling and Simulation 57(1).</li>
  <li>Ahmed, A., Rashid, T., Saeed, S. (2021). Dynamic Cat Swarm Optimization. Neural Computing and Applications.</li>
  <li>Cat Swarm Optimization Algorithm: A Survey and Performance Evaluation. arXiv:2001.11822.</li></ol>
- <p class="hint">Terima kasih 🌿</p>`}
+ <p class="hint">Terima kasih</p>`}
 ];
 
 /* ---------- sinkronisasi tampilan dengan simulasi ---------- */
